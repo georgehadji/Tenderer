@@ -30,6 +30,7 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 | How tender modules are structured; `requirements.csv` schema | [`tenders/CONTEXT.md`](tenders/CONTEXT.md) |
 | Step-by-step workflow for the Thessaloniki student-transport ΔΣΑ (taxi) | [`tenders/pkm-meth-student-transport-dsa-2026/sop.md`](tenders/pkm-meth-student-transport-dsa-2026/sop.md) |
 | Document and requirement checklist for that tender (R1–R23) | [`tenders/pkm-meth-student-transport-dsa-2026/requirements.csv`](tenders/pkm-meth-student-transport-dsa-2026/requirements.csv) |
+| Desk research (plan step 1): 2026 taxi invitations, routes, outcomes, ΔΣΑ registry, proposed gate N | [`tenders/pkm-meth-student-transport-dsa-2026/desk-research-2026.md`](tenders/pkm-meth-student-transport-dsa-2026/desk-research-2026.md) |
 | Subagent model enforcement (Sonnet) | [`.claude/settings.json`](.claude/settings.json) |
 
 ## Folder index

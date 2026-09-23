@@ -8,13 +8,15 @@ One folder per tender (or ΔΣΑ). Each folder is a self-contained module. Addin
 |---|---|
 | [`pkm-meth-student-transport-dsa-2026/`](pkm-meth-student-transport-dsa-2026/CONTEXT.md) | ΔΣΑ Μεταφοράς Μαθητών Μ.Ε. Θεσσαλονίκης 2026–2029 (ΠΚΜ), ΑΔΑ ΨΡΘ97ΛΛ-ΕΕΚ, category Β (Ε.Δ.Χ.) |
 
-## Module contract (every tender folder has these files)
+## Module contract (every tender folder has the required files)
 
 | File | Required | Contains |
 |---|---|---|
 | `CONTEXT.md` | yes | Source identifiers (ΑΔΑ, ΚΗΜΔΗΣ ref, date, links) and the file list |
 | `sop.md` | yes | Step-by-step workflow (Greek). Every step cites `§` of the source document |
 | `requirements.csv` | yes | One row per requirement/document, in the schema below |
+| `desk-research-<year>.md` | no | Market numbers for the tender (Greek): invitations, routes, outcomes, with sources |
+| `routes-<category>-<year>.csv` | no | Route tables extracted from invitations. Research data, not a data contract: code must not read it until a schema is defined here |
 
 Folder name: `<authority>-<area>-<subject>-<procedure>-<year>`, lowercase ASCII, hyphen-separated.
 
