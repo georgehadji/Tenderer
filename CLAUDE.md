@@ -26,7 +26,8 @@ Tender-participation support for small professionals (first vertical: taxi → s
 - **Single source of truth.** Each fact lives in one file and every other file links to it. Requirements live only in `requirements.csv`, and the strategy lives only in `docs/plan.md`.
 - **Data contract.** The `requirements.csv` schema is defined in [`tenders/CONTEXT.md`](tenders/CONTEXT.md). Change the schema only together with that file and every existing tender.
 - **Sources.** Every claim about a tender cites its `§` in the source document. A claim without a source is a hypothesis and must be labelled as one.
-- **Code.** Do not write any before the gate in `docs/plan.md` §6 step 5. After that, each module lives in its own top-level folder with its own `CONTEXT.md`, and modules depend on data contracts, not on each other's internals. Build only what a real client cycle needs (YAGNI).
+- **Code.** Do not write any before the gate in `docs/plan.md` §6 step 5. After that, follow [`docs/architecture.md`](docs/architecture.md): the folder layout (§5.4), the dependency rules checked by import-linter (§5.2–5.3), and each module's paradigm, patterns and controls (§6). Each module folder has its own `CONTEXT.md`. Modules depend on data contracts and each other's `api.py`, not on internals. Build only what a real client cycle needs (YAGNI).
+- **Safety and security come first.** A change that touches deadlines, money, eligibility, personal data or external input must keep the principles and controls of `docs/architecture.md` §2, §10 and §11. If it cannot, update that document in the same change and say why.
 
 ## 5. Product invariants (never build against these)
 
@@ -36,4 +37,4 @@ Tender-participation support for small professionals (first vertical: taxi → s
 
 ## 6. Conventions
 
-- Business and domain docs are written in Greek. Code, identifiers, paths, `CONTEXT.md`/`CLAUDE.md` and commit messages are written in English.
+- Business and domain docs are written in Greek. Code, identifiers, paths, technical design docs (`docs/architecture.md`), `CONTEXT.md`/`CLAUDE.md` and commit messages are written in English.
