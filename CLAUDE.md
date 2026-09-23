@@ -37,4 +37,4 @@ Tender-participation support for small professionals (first vertical: taxi → s
 
 ## 6. Conventions
 
-- Business and domain docs are written in Greek. Code, identifiers, paths, technical design docs (`docs/architecture.md`), `CONTEXT.md`/`CLAUDE.md` and commit messages are written in English.
+- Business and domain docs are written in Greek. Code, identifiers, paths, technical design docs (`docs/architecture.md`, `docs/llm-models.md`), `CONTEXT.md`/`CLAUDE.md` and commit messages are written in English.

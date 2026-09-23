@@ -1,0 +1,178 @@
+model_id,endpoint_tag,provider_name,snapshot,quantization,zdr,structured_outputs,response_format,reasoning,temperature,top_p,seed,prompt_usd_per_m,completion_usd_per_m,max_completion_tokens
+anthropic/claude-opus-5.5,amazon-bedrock,Amazon Bedrock,anthropic/claude-opus-5.5-20260921,unknown,1,0,1,1,0,0,0,4.0,20.0,128000
+anthropic/claude-opus-5.5,azure/global,Azure,anthropic/claude-opus-5.5-20260921,unknown,0,1,1,1,1,0,0,4.0,20.0,128000
+anthropic/claude-opus-5.5,google-vertex/global,Google,anthropic/claude-opus-5.5-20260921,unknown,1,1,1,1,0,0,0,4.0,20.0,128000
+anthropic/claude-opus-5.5,claude-on-aws,Claude Platform on AWS,anthropic/claude-opus-5.5-20260921,unknown,0,1,1,1,0,0,0,4.0,20.0,128000
+anthropic/claude-opus-5.5,anthropic,Anthropic,anthropic/claude-opus-5.5-20260921,unknown,0,1,1,1,0,0,0,4.0,20.0,128000
+anthropic/claude-opus-5.5,amazon-bedrock/eu-west-1,Amazon Bedrock,anthropic/claude-opus-5.5-20260921,unknown,1,0,1,1,0,0,0,4.4,22.0,128000
+anthropic/claude-opus-5.5,amazon-bedrock/us-east-1,Amazon Bedrock,anthropic/claude-opus-5.5-20260921,unknown,1,0,1,1,0,0,0,4.4,22.0,128000
+anthropic/claude-opus-5.5,azure/us,Azure,anthropic/claude-opus-5.5-20260921,unknown,0,1,1,1,1,0,0,4.4,22.0,128000
+anthropic/claude-opus-5.5,google-vertex/us,Google,anthropic/claude-opus-5.5-20260921,unknown,1,1,1,1,0,0,0,4.4,22.0,128000
+anthropic/claude-opus-5.5,google-vertex/europe,Google,anthropic/claude-opus-5.5-20260921,unknown,1,1,1,1,0,0,0,4.4,22.0,128000
+anthropic/claude-opus-5.5,anthropic/fast,Anthropic,anthropic/claude-opus-5.5-20260921,unknown,0,1,1,1,0,0,0,8.0,40.0,128000
+anthropic/claude-opus-5,claude-on-aws,Claude Platform on AWS,anthropic/claude-opus-5-20260723,unknown,0,1,1,1,0,0,0,5.0,25.0,128000
+anthropic/claude-opus-5,google-vertex/global,Google,anthropic/claude-opus-5-20260723,unknown,1,1,1,1,0,0,0,5.0,25.0,128000
+anthropic/claude-opus-5,amazon-bedrock,Amazon Bedrock,anthropic/claude-opus-5-20260723,unknown,1,0,1,1,0,0,0,5.0,25.0,128000
+anthropic/claude-opus-5,azure/global,Azure,anthropic/claude-opus-5-20260723,unknown,0,1,1,1,1,0,0,5.0,25.0,128000
+anthropic/claude-opus-5,anthropic,Anthropic,anthropic/claude-opus-5-20260723,unknown,0,1,1,1,0,0,0,5.0,25.0,128000
+anthropic/claude-opus-5,amazon-bedrock/eu-west-1,Amazon Bedrock,anthropic/claude-opus-5-20260723,unknown,1,0,1,1,0,0,0,5.5,27.5,128000
+anthropic/claude-opus-5,azure/us,Azure,anthropic/claude-opus-5-20260723,unknown,0,1,1,1,1,0,0,5.5,27.5,128000
+anthropic/claude-opus-5,google-vertex/us,Google,anthropic/claude-opus-5-20260723,unknown,1,1,1,1,0,0,0,5.5,27.5,128000
+anthropic/claude-opus-5,google-vertex/europe,Google,anthropic/claude-opus-5-20260723,unknown,1,1,1,1,0,0,0,5.5,27.5,128000
+anthropic/claude-opus-5,amazon-bedrock/us-east-1,Amazon Bedrock,anthropic/claude-opus-5-20260723,unknown,1,0,1,1,0,0,0,5.5,27.5,128000
+anthropic/claude-opus-5,anthropic/fast,Anthropic,anthropic/claude-opus-5-20260723,unknown,0,1,1,1,0,0,0,10.0,50.0,128000
+anthropic/claude-sonnet-5,claude-on-aws,Claude Platform on AWS,anthropic/claude-sonnet-5-20260630,unknown,0,1,1,1,0,0,0,2.0,10.0,128000
+anthropic/claude-sonnet-5,azure/global,Azure,anthropic/claude-sonnet-5-20260630,unknown,0,1,1,1,0,0,0,2.0,10.0,128000
+anthropic/claude-sonnet-5,google-vertex/global,Google,anthropic/claude-sonnet-5-20260630,unknown,1,1,1,1,0,0,0,2.0,10.0,128000
+anthropic/claude-sonnet-5,amazon-bedrock/global,Amazon Bedrock,anthropic/claude-sonnet-5-20260630,unknown,1,0,1,1,0,0,0,2.0,10.0,128000
+anthropic/claude-sonnet-5,anthropic,Anthropic,anthropic/claude-sonnet-5-20260630,unknown,0,1,1,1,0,0,0,2.0,10.0,128000
+anthropic/claude-sonnet-5,amazon-bedrock/eu-west-1,Amazon Bedrock,anthropic/claude-sonnet-5-20260630,unknown,1,0,1,1,0,0,0,2.2,11.0,128000
+anthropic/claude-sonnet-5,azure/us,Azure,anthropic/claude-sonnet-5-20260630,unknown,0,1,1,1,0,0,0,2.2,11.0,128000
+anthropic/claude-sonnet-5,google-vertex/us,Google,anthropic/claude-sonnet-5-20260630,unknown,1,1,1,1,0,0,0,2.2,11.0,128000
+anthropic/claude-sonnet-5,google-vertex/europe,Google,anthropic/claude-sonnet-5-20260630,unknown,1,1,1,1,0,0,0,2.2,11.0,128000
+anthropic/claude-sonnet-5,amazon-bedrock/us-east-1,Amazon Bedrock,anthropic/claude-sonnet-5-20260630,unknown,1,0,1,1,0,0,0,2.2,11.0,128000
+openai/gpt-6-astra,openai/flex,OpenAI,openai/gpt-6-astra-20260903,unknown,0,1,1,1,0,0,1,5.0,25.0,128000
+openai/gpt-6-astra,azure,Azure,openai/gpt-6-astra-20260903,unknown,1,1,1,1,0,0,1,10.0,50.0,128000
+openai/gpt-6-astra,openai,OpenAI,openai/gpt-6-astra-20260903,unknown,0,1,1,1,0,0,1,10.0,50.0,128000
+openai/gpt-6-astra,amazon-bedrock/us-west-2,Amazon Bedrock,openai/gpt-6-astra-20260903,unknown,0,0,0,1,0,0,0,11.0,55.0,128000
+openai/gpt-6-astra,azure/us,Azure,openai/gpt-6-astra-20260903,unknown,1,1,1,1,0,0,1,11.0,55.0,128000
+openai/gpt-6-astra,openai/fast,OpenAI,openai/gpt-6-astra-20260903,unknown,0,1,1,1,0,0,1,20.0,100.0,128000
+openai/gpt-6-sol,openai/flex,OpenAI,openai/gpt-6-sol-20260922,unknown,0,1,1,1,0,0,1,1.0,5.0,128000
+openai/gpt-6-sol,openai,OpenAI,openai/gpt-6-sol-20260922,unknown,0,1,1,1,0,0,1,2.0,10.0,128000
+openai/gpt-6-sol,azure,Azure,openai/gpt-6-sol-20260922,unknown,1,1,1,1,0,0,1,2.0,10.0,128000
+openai/gpt-6-sol,azure/us,Azure,openai/gpt-6-sol-20260922,unknown,1,1,1,1,0,0,1,2.2,11.0,128000
+openai/gpt-6-sol,azure/eu,Azure,openai/gpt-6-sol-20260922,unknown,1,1,1,1,0,0,1,2.2,11.0,128000
+openai/gpt-6-sol,amazon-bedrock/us-east-1,Amazon Bedrock,openai/gpt-6-sol-20260922,unknown,0,0,0,1,0,0,0,2.2,11.0,128000
+openai/gpt-6-sol,openai/fast,OpenAI,openai/gpt-6-sol-20260922,unknown,0,1,1,1,0,0,1,4.0,20.0,128000
+openai/gpt-6-luna,openai/flex,OpenAI,openai/gpt-6-luna-20260922,unknown,0,1,1,1,0,0,1,0.05,0.25,128000
+openai/gpt-6-luna,openai,OpenAI,openai/gpt-6-luna-20260922,unknown,0,1,1,1,0,0,1,0.1,0.5,128000
+openai/gpt-6-luna,azure,Azure,openai/gpt-6-luna-20260922,unknown,1,1,1,1,0,0,1,0.1,0.5,128000
+openai/gpt-6-luna,azure/us,Azure,openai/gpt-6-luna-20260922,unknown,1,1,1,1,0,0,1,0.11,0.55,128000
+openai/gpt-6-luna,azure/eu,Azure,openai/gpt-6-luna-20260922,unknown,1,1,1,1,0,0,1,0.11,0.55,128000
+openai/gpt-6-luna,amazon-bedrock/us-east-1,Amazon Bedrock,openai/gpt-6-luna-20260922,unknown,0,0,0,1,0,0,0,0.11,0.55,128000
+openai/gpt-6-luna,openai/fast,OpenAI,openai/gpt-6-luna-20260922,unknown,0,1,1,1,0,0,1,0.2,1.0,128000
+google/gemini-3.8-flash,google-ai-studio/flex,Google AI Studio,google/gemini-3.8-flash-20260902,unknown,0,1,1,1,1,1,1,0.375,1.875,65536
+google/gemini-3.8-flash,google-vertex/global/flex,Google,google/gemini-3.8-flash-20260902,unknown,1,1,1,1,0,0,1,0.375,1.875,65536
+google/gemini-3.8-flash,google-ai-studio,Google AI Studio,google/gemini-3.8-flash-20260902,unknown,0,1,1,1,1,1,1,0.75,3.75,65536
+google/gemini-3.8-flash,google-vertex/global,Google,google/gemini-3.8-flash-20260902,unknown,1,1,1,1,0,0,1,0.75,3.75,65536
+google/gemini-3.8-flash,google-ai-studio/priority,Google AI Studio,google/gemini-3.8-flash-20260902,unknown,0,1,1,1,1,1,1,1.35,6.75,65536
+google/gemini-3.8-flash,google-vertex/global/priority,Google,google/gemini-3.8-flash-20260902,unknown,1,1,1,1,0,0,1,1.35,6.75,65536
+x-ai/grok-4.7,xai/zdr,xAI,x-ai/grok-4.7-20260916,unknown,1,1,1,1,1,1,1,1.6,4.8,450000
+x-ai/grok-4.7,xai,xAI,x-ai/grok-4.7-20260916,unknown,0,1,1,1,1,1,1,1.6,4.8,450000
+x-ai/grok-4.7,xai/zdr/priority,xAI,x-ai/grok-4.7-20260916,unknown,1,1,1,1,1,1,1,3.2,9.6,450000
+x-ai/grok-4.7,xai/priority,xAI,x-ai/grok-4.7-20260916,unknown,0,1,1,1,1,1,1,3.2,9.6,450000
+xiaomi/mimo-v2.6-pro,deepinfra/fp8,DeepInfra,xiaomi/mimo-v2.6-pro-20260921,fp8,1,1,1,1,1,1,1,0.435,0.87,943718
+xiaomi/mimo-v2.6-pro,xiaomi/fp8,Xiaomi,xiaomi/mimo-v2.6-pro-20260921,fp8,0,1,1,1,1,1,0,0.435,0.87,131072
+z-ai/glm-5.3,deepinfra/fp4,DeepInfra,z-ai/glm-5.3-20260816,fp4,1,1,1,1,1,1,1,0.5625,2.5,131072
+z-ai/glm-5.3,reka/fp8,Reka,z-ai/glm-5.3-20260816,fp8,1,1,1,1,1,1,1,0.7605,2.574,235929
+z-ai/glm-5.3,sail-research/fp8,Sail Research,z-ai/glm-5.3-20260816,fp8,1,1,1,1,1,1,1,0.77,4.0,943718
+z-ai/glm-5.3,novita/fp8,Novita,z-ai/glm-5.3-20260816,fp8,1,0,1,1,1,1,1,0.7826,2.4596,131072
+z-ai/glm-5.3,io-net/fp8,Io Net,z-ai/glm-5.3-20260816,fp8,1,1,1,1,1,1,1,0.806,2.728,65536
+z-ai/glm-5.3,phala,Phala,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,1,0.84,2.64,131072
+z-ai/glm-5.3,morph,Morph,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,1,0.8687,2.7302,943718
+z-ai/glm-5.3,inference-net/fp4,InferenceNet,z-ai/glm-5.3-20260816,fp4,1,1,1,1,1,1,1,0.9,3.0,131072
+z-ai/glm-5.3,digitalocean,DigitalOcean,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,0,0.91,2.86,128000
+z-ai/glm-5.3,gmicloud/fp8,GMICloud,z-ai/glm-5.3-20260816,fp8,0,0,1,1,1,1,1,0.98,3.08,943718
+z-ai/glm-5.3,inceptron/fp4,Inceptron,z-ai/glm-5.3-20260816,fp4,1,0,1,1,1,1,1,0.9856,3.9785,943718
+z-ai/glm-5.3,makora/fp4,Makora,z-ai/glm-5.3-20260816,fp4,1,1,1,1,1,1,1,1.05,4.2,128000
+z-ai/glm-5.3,siliconflow/fp8,SiliconFlow,z-ai/glm-5.3-20260816,fp8,1,0,1,1,1,1,0,1.12,3.52,262144
+z-ai/glm-5.3,alibaba,Alibaba,z-ai/glm-5.3-20260816,unknown,0,0,1,1,1,1,1,1.19,3.74,131072
+z-ai/glm-5.3,decart/fp4,Decart,z-ai/glm-5.3-20260816,fp4,1,1,1,1,1,1,1,1.19,3.74,943718
+z-ai/glm-5.3,wafer,Wafer,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,1,1.19,4.4,943718
+z-ai/glm-5.3,sail-research/us,Sail Research,z-ai/glm-5.3-20260816,fp8,1,1,1,1,1,1,1,1.207,3.871,943718
+z-ai/glm-5.3,friendli,Friendli,z-ai/glm-5.3-20260816,unknown,0,1,1,1,1,1,1,1.26,3.96,943718
+z-ai/glm-5.3,akashml/fp8,AkashML,z-ai/glm-5.3-20260816,fp8,1,1,1,1,1,1,1,1.3,4.4,131072
+z-ai/glm-5.3,baidu/fp8,Baidu,z-ai/glm-5.3-20260816,fp8,0,1,1,1,1,1,0,1.4,4.4,131072
+z-ai/glm-5.3,baseten/fp4,BaseTen,z-ai/glm-5.3-20260816,fp4,1,1,1,1,1,1,0,1.4,4.4,262144
+z-ai/glm-5.3,mistral/nvfp4,Mistral,z-ai/glm-5.3-20260816,nvfp4,0,1,1,1,1,1,1,1.4,4.4,131072
+z-ai/glm-5.3,crusoe/fp4,Crusoe,z-ai/glm-5.3-20260816,fp4,1,1,1,1,1,1,1,1.4,4.4,943718
+z-ai/glm-5.3,primeintellect,PrimeIntellect,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,0,1.4,4.4,131072
+z-ai/glm-5.3,venice,Venice,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,0,1.4,4.4,131072
+z-ai/glm-5.3,together,Together,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,0,1.4,4.4,943717
+z-ai/glm-5.3,parasail/fp8,Parasail,z-ai/glm-5.3-20260816,fp8,1,1,1,1,1,1,1,1.4,4.4,943718
+z-ai/glm-5.3,modal,Modal,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,0,1.4,4.4,943718
+z-ai/glm-5.3,baseten/fp4,BaseTen,z-ai/glm-5.3-20260816,fp4,1,1,1,1,1,1,0,1.4,4.4,262144
+z-ai/glm-5.3,fireworks,Fireworks,z-ai/glm-5.3-20260816,unknown,1,1,1,1,1,1,0,1.4,4.4,943718
+z-ai/glm-5.3,cloudflare,Cloudflare,z-ai/glm-5.3-20260816,unknown,0,1,1,1,1,1,1,1.4,4.4,1179648
+z-ai/glm-5.3,atlas-cloud/fp8,AtlasCloud,z-ai/glm-5.3-20260816,fp8,0,1,1,1,1,1,1,1.4,4.4,131072
+z-ai/glm-5.3,z-ai/fp8,Z.AI,z-ai/glm-5.3-20260816,fp8,1,0,1,1,1,1,0,1.4,4.4,131072
+z-ai/glm-5.3,baseten/fp8,BaseTen,z-ai/glm-5.3-20260816,fp8,1,0,0,1,1,1,0,2.1,6.6,262144
+z-ai/glm-5.3,baseten/fp8,BaseTen,z-ai/glm-5.3-20260816,fp8,1,0,0,1,1,1,0,2.1,6.6,262144
+z-ai/glm-5.3-flash,deepinfra/fp4,DeepInfra,z-ai/glm-5.3-flash-20260826,fp4,1,1,1,1,1,1,1,0.075,0.25,131072
+z-ai/glm-5.3-flash,morph,Morph,z-ai/glm-5.3-flash-20260826,unknown,1,1,1,1,1,1,1,0.088,0.308,943718
+z-ai/glm-5.3-flash,wafer,Wafer,z-ai/glm-5.3-flash-20260826,unknown,1,1,1,1,1,1,1,0.089,0.35,943718
+z-ai/glm-5.3-flash,inference-net/fp4,InferenceNet,z-ai/glm-5.3-flash-20260826,fp4,1,1,1,1,1,1,1,0.09,0.28,128000
+z-ai/glm-5.3-flash,gmicloud/fp8,GMICloud,z-ai/glm-5.3-flash-20260826,fp8,0,0,1,1,1,1,1,0.09,0.3,943718
+z-ai/glm-5.3-flash,relace,Relace,z-ai/glm-5.3-flash-20260826,unknown,1,0,0,1,1,1,1,0.1,0.36,131072
+z-ai/glm-5.3-flash,open-inference/fp4,OpenInference,z-ai/glm-5.3-flash-20260826,fp4,1,1,1,1,1,1,1,0.1,0.5,102400
+z-ai/glm-5.3-flash,phala/fp8,Phala,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,1,0.1275,0.425,131072
+z-ai/glm-5.3-flash,novita/fp8,Novita,z-ai/glm-5.3-flash-20260826,fp8,1,0,1,1,1,1,1,0.132,0.44,131072
+z-ai/glm-5.3-flash,streamlake/fp8,StreamLake,z-ai/glm-5.3-flash-20260826,fp8,0,0,1,1,1,1,0,0.141,0.47,128000
+z-ai/glm-5.3-flash,sail-research/us,Sail Research,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,1,0.1425,0.475,131072
+z-ai/glm-5.3-flash,io-net/fp8,Io Net,z-ai/glm-5.3-flash-20260826,fp8,1,0,0,1,1,1,1,0.1455,0.485,131072
+z-ai/glm-5.3-flash,baseten/fp8,BaseTen,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,0,0.15,0.5,131072
+z-ai/glm-5.3-flash,inceptron/fp8,Inceptron,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,1,0.15,0.5,943718
+z-ai/glm-5.3-flash,near-ai/fp8,Near AI,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,1,0.15,0.5,131072
+z-ai/glm-5.3-flash,crusoe/fp4,Crusoe,z-ai/glm-5.3-flash-20260826,fp4,1,1,1,1,1,1,1,0.15,0.5,943718
+z-ai/glm-5.3-flash,coreweave/nvfp4,CoreWeave,z-ai/glm-5.3-flash-20260826,nvfp4,1,1,1,1,1,1,1,0.15,0.5,943718
+z-ai/glm-5.3-flash,atlas-cloud/fp8,AtlasCloud,z-ai/glm-5.3-flash-20260826,fp8,0,0,0,1,1,1,1,0.15,0.5,131072
+z-ai/glm-5.3-flash,fireworks,Fireworks,z-ai/glm-5.3-flash-20260826,unknown,1,1,1,1,1,1,0,0.15,0.5,943718
+z-ai/glm-5.3-flash,friendli,Friendli,z-ai/glm-5.3-flash-20260826,unknown,0,1,1,1,1,1,1,0.15,0.5,943718
+z-ai/glm-5.3-flash,siliconflow/fp8,SiliconFlow,z-ai/glm-5.3-flash-20260826,fp8,1,0,1,1,1,1,0,0.15,0.5,262144
+z-ai/glm-5.3-flash,digitalocean,DigitalOcean,z-ai/glm-5.3-flash-20260826,unknown,1,1,1,1,1,1,0,0.15,0.5,943718
+z-ai/glm-5.3-flash,together,Together,z-ai/glm-5.3-flash-20260826,unknown,1,1,1,1,1,1,0,0.15,0.5,943717
+z-ai/glm-5.3-flash,reka/fp8,Reka,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,1,0.15,0.5,235929
+z-ai/glm-5.3-flash,parasail/fp8,Parasail,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,1,0.15,0.5,943718
+z-ai/glm-5.3-flash,baseten/fp8,BaseTen,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,0,0.15,0.5,131072
+z-ai/glm-5.3-flash,venice,Venice,z-ai/glm-5.3-flash-20260826,unknown,1,1,1,1,1,1,0,0.15,0.5,131072
+z-ai/glm-5.3-flash,z-ai/fp8,Z.AI,z-ai/glm-5.3-flash-20260826,fp8,1,0,1,1,1,1,0,0.15,0.5,131072
+z-ai/glm-5.3-flash,nextbit/fp8,NextBit,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,1,0.165,0.55,128000
+z-ai/glm-5.3-flash,cloudflare,Cloudflare,z-ai/glm-5.3-flash-20260826,unknown,0,1,1,1,1,1,1,0.3,1.0,1179648
+z-ai/glm-5.3-flash,modal/fp8,Modal,z-ai/glm-5.3-flash-20260826,fp8,1,1,1,1,1,1,0,0.45,1.5,943718
+deepseek/deepseek-v4.1-flash,open-inference/fp4,OpenInference,deepseek/deepseek-v4.1-flash-20260910,fp4,1,1,1,1,1,1,1,0.1,0.5,943718
+deepseek/deepseek-v4.1-flash,dekallm,DekaLLM,deepseek/deepseek-v4.1-flash-20260910,unknown,1,1,1,1,1,1,1,0.1,1.0,943718
+deepseek/deepseek-v4.1-flash,wafer,Wafer,deepseek/deepseek-v4.1-flash-20260910,unknown,1,1,1,1,1,1,1,0.119,0.6,943718
+deepseek/deepseek-v4.1-flash,relace/fp4,Relace,deepseek/deepseek-v4.1-flash-20260910,fp4,1,0,0,1,1,1,0,0.12,0.52,943718
+deepseek/deepseek-v4.1-flash,morph,Morph,deepseek/deepseek-v4.1-flash-20260910,unknown,1,1,1,1,1,1,1,0.1275,0.51,943718
+deepseek/deepseek-v4.1-flash,sail-research/fp4,Sail Research,deepseek/deepseek-v4.1-flash-20260910,fp4,1,1,1,1,1,1,1,0.13,0.75,384000
+deepseek/deepseek-v4.1-flash,deepinfra/fp8,DeepInfra,deepseek/deepseek-v4.1-flash-20260910,fp8,1,1,1,1,1,1,1,0.14,0.42,131072
+deepseek/deepseek-v4.1-flash,deepseek,DeepSeek,deepseek/deepseek-v4.1-flash-20260910,unknown,0,0,1,1,1,1,0,0.15,0.6,384000
+deepseek/deepseek-v4.1-flash,streamlake/fp8,StreamLake,deepseek/deepseek-v4.1-flash-20260910,fp8,0,0,1,1,1,1,0,0.1985,0.794,384000
+deepseek/deepseek-v4.1-flash,coreweave/fp8,CoreWeave,deepseek/deepseek-v4.1-flash-20260910,fp8,1,1,1,1,1,1,1,0.2,0.65,943718
+deepseek/deepseek-v4.1-flash,fireworks,Fireworks,deepseek/deepseek-v4.1-flash-20260910,unknown,1,1,1,1,1,1,0,0.22,0.66,943718
+deepseek/deepseek-v4.1-flash,krea/fp8,Krea,deepseek/deepseek-v4.1-flash-20260910,fp8,1,1,1,1,1,1,1,0.225,0.9,943718
+deepseek/deepseek-v4.1-flash,phala,Phala,deepseek/deepseek-v4.1-flash-20260910,unknown,1,0,1,1,1,1,1,0.276,1.104,393216
+deepseek/deepseek-v4.1-flash,gmicloud/fp8,GMICloud,deepseek/deepseek-v4.1-flash-20260910,fp8,0,0,1,1,1,1,1,0.285,1.14,943717
+deepseek/deepseek-v4.1-flash,novita/fp8,Novita,deepseek/deepseek-v4.1-flash-20260910,fp8,1,0,1,1,1,1,1,0.285,1.14,393216
+deepseek/deepseek-v4.1-flash,atlas-cloud/fp8,AtlasCloud,deepseek/deepseek-v4.1-flash-20260910,fp8,0,1,1,1,1,1,1,0.3,1.2,393216
+deepseek/deepseek-v4.1-flash,baseten/fp8,BaseTen,deepseek/deepseek-v4.1-flash-20260910,fp8,1,0,0,1,1,1,0,0.3,1.2,32768
+deepseek/deepseek-v4.1-flash,makora,Makora,deepseek/deepseek-v4.1-flash-20260910,unknown,1,1,1,1,1,1,1,0.3,1.2,393216
+deepseek/deepseek-v4.1-flash,digitalocean,DigitalOcean,deepseek/deepseek-v4.1-flash-20260910,unknown,1,1,1,1,1,1,0,0.3,1.2,943718
+deepseek/deepseek-v4.1-flash,alibaba,Alibaba,deepseek/deepseek-v4.1-flash-20260910,unknown,0,0,1,1,1,1,1,0.3,1.2,393216
+deepseek/deepseek-v4.1-flash,together,Together,deepseek/deepseek-v4.1-flash-20260910,unknown,1,1,1,1,1,1,0,0.3,1.2,943718
+deepseek/deepseek-v4.1-flash,siliconflow/fp8,SiliconFlow,deepseek/deepseek-v4.1-flash-20260910,fp8,1,0,1,1,1,1,0,0.3,1.2,393216
+deepseek/deepseek-v4.1-flash,modal,Modal,deepseek/deepseek-v4.1-flash-20260910,unknown,1,1,1,1,1,1,0,0.3,1.2,943718
+deepseek/deepseek-v4.1-flash,baseten/fp8,BaseTen,deepseek/deepseek-v4.1-flash-20260910,fp8,1,0,0,1,1,1,0,0.3,1.2,32768
+deepseek/deepseek-v4.1-flash,parasail/fp8,Parasail,deepseek/deepseek-v4.1-flash-20260910,fp8,1,1,1,1,1,1,1,0.3,1.2,943718
+deepseek/deepseek-v4.1-flash,venice/fp8,Venice,deepseek/deepseek-v4.1-flash-20260910,fp8,1,1,1,1,1,1,0,0.375,1.5,131072
+qwen/qwen3.8-max-0902,alibaba,Alibaba,qwen/qwen3.8-max-20260902,unknown,0,1,1,1,1,1,1,2.0,6.0,131072
+moonshotai/kimi-k3,sail-research/fp4,Sail Research,moonshotai/kimi-k3-20260715,fp4,1,1,1,1,1,1,1,1.4989,10.758,943718
+moonshotai/kimi-k3,inference-net/fp4,InferenceNet,moonshotai/kimi-k3-20260715,fp4,1,1,1,1,1,1,1,1.95,9.75,943718
+moonshotai/kimi-k3,relace/fp4,Relace,moonshotai/kimi-k3-20260715,fp4,1,0,0,1,1,1,0,1.95,9.75,943718
+moonshotai/kimi-k3,wafer,Wafer,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,1,1.99,14.5,943718
+moonshotai/kimi-k3,phala,Phala,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,1,2.1,10.5,943718
+moonshotai/kimi-k3,morph,Morph,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,1,2.5,14.0,943718
+moonshotai/kimi-k3,makora,Makora,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,1,2.55,12.75,943718
+moonshotai/kimi-k3,digitalocean,DigitalOcean,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,0,2.55,12.95,943718
+moonshotai/kimi-k3,deepinfra/bf16,DeepInfra,moonshotai/kimi-k3-20260715,bf16,1,1,1,1,1,1,1,2.85,14.25,16384
+moonshotai/kimi-k3,chutes/mxfp4,Chutes,moonshotai/kimi-k3-20260715,mxfp4,0,1,1,1,1,1,1,3.0,15.0,65535
+moonshotai/kimi-k3,parasail/fp4,Parasail,moonshotai/kimi-k3-20260715,fp4,1,1,1,1,1,1,1,3.0,15.0,943718
+moonshotai/kimi-k3,modal/mxfp4,Modal,moonshotai/kimi-k3-20260715,mxfp4,1,1,1,1,1,1,0,3.0,15.0,943718
+moonshotai/kimi-k3,together,Together,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,0,3.0,15.0,943718
+moonshotai/kimi-k3,fireworks,Fireworks,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,0,3.0,15.0,943718
+moonshotai/kimi-k3,baseten/fp8,BaseTen,moonshotai/kimi-k3-20260715,fp8,1,0,0,1,1,1,0,3.0,15.0,262144
+moonshotai/kimi-k3,moonshotai/mxfp4,Moonshot AI,moonshotai/kimi-k3-20260715,mxfp4,1,1,1,1,0,0,0,3.0,15.0,943718
+moonshotai/kimi-k3,fireworks/us,Fireworks,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,0,3.3,16.5,943718
+moonshotai/kimi-k3,alibaba,Alibaba,moonshotai/kimi-k3-20260715,unknown,0,1,1,1,0,0,1,3.45,17.25,943718
+moonshotai/kimi-k3,fireworks/fast,Fireworks,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,0,4.5,22.5,943718
+moonshotai/kimi-k3,morph/fast,Morph,moonshotai/kimi-k3-20260715,unknown,1,1,1,1,1,1,1,6.0,22.5,943718

@@ -25,7 +25,7 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 | AD7 | **Three-valued rule results**: satisfied / not satisfied / unknown. Unknown is displayed as not satisfied | A missing fact can never become a false "you are ready" |
 | AD8 | **Conservative deadlines**: when a rule or calendar is ambiguous, remind by the earliest candidate date | A missed deadline can delete the client from the ΔΣΑ (§3.1) or forfeit a guarantee (§4.3.1.2) |
 | AD9 | **Money as `decimal.Decimal`** with rounding rules taken from the tender | The offer must match what ΕΣΗΔΗΣ computes, to the cent (§4.3.2.1) |
-| AD10 | **The LLM reads only public tender documents**, returns schema-bound JSON, every value carries a verbatim quote that code checks, and a human approves | Contains prompt injection and invented content; client data never reaches the LLM |
+| AD10 | **The LLM reads only public tender documents**, as text, through OpenRouter on zero-data-retention endpoints; it returns schema-bound JSON, every value carries a verbatim quote that code checks, two models extract requirements independently, and a human approves ([`llm-models.md`](llm-models.md)) | Contains prompt injection, invented content and omissions; client data never reaches the LLM |
 | AD11 | **Transactional outbox + scheduled idempotent jobs + dead man's switch**, and every deadline goes out on three channels | A silent failure of reminders is the most likely way the product harms a client |
 | AD12 | **Target OWASP ASVS 5.0 Level 2** | L2 is the level for applications that hold personal data [11] |
 
@@ -59,7 +59,7 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 
 - Product invariants, [`CLAUDE.md`](../CLAUDE.md) §5: no client credentials; never sign or submit for the client; no sensitive documents; the client decides the discount.
 - The plan's gates, `plan.md` §6: no code before step 5; build only what real client cycles showed is needed.
-- Personal data and processing stay in the EU (§10.8).
+- Client personal data and its processing stay in the EU. The one exception, public tender text sent to the LLM, is covered in §10.8.
 
 ---
 
@@ -115,11 +115,11 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 
 | Layer | Choice | Why | Rejected alternatives |
 |---|---|---|---|
-| Language | **Python 3.13** or newer, within the range the chosen Django version supports (Django 6.1: 3.12–3.14 [18]) | Best libraries for PDF/XLSX parsing; `decimal` and `zoneinfo` in the standard library; official Anthropic SDK; Hypothesis [10] | TypeScript (weaker PDF/table extraction); Go (more code for CRUD and admin) |
+| Language | **Python 3.13** or newer, within the range the chosen Django version supports (Django 6.1: 3.12–3.14 [18]) | Best libraries for PDF/XLSX parsing; `decimal` and `zoneinfo` in the standard library; Hypothesis [10] | TypeScript (weaker PDF/table extraction); Go (more code for CRUD and admin) |
 | Web framework | **Django, the newest LTS available when v1 starts.** Today: 5.2 LTS, security fixes until 30 Apr 2028. 6.0 (3 Dec 2025) added built-in CSP; 6.1 released 5 Aug 2026 [18][19]. The next LTS, 6.2, is expected around April 2027 (**UNVERIFIED**). On 5.2, add CSP with the `django-csp` package | The admin is the operator UI for free; CSRF protection, template auto-escaping, clickjacking protection and secure sessions by default; migrations; parameterised ORM queries | FastAPI, Flask (security features assembled by hand; no admin) |
 | Database | **PostgreSQL 17 or 18**, managed, EU region. Not 14 (end of life 12 Nov 2026); Django 6.1 needs 15+ [21][18] | CHECK and UNIQUE constraints enforce invariants in the database; roles and grants give an append-only audit table; point-in-time recovery | SQLite (no role separation; fine only for throwaway prototypes) |
 | Background work | **Cron (or the platform scheduler) calling Django management commands**, with a transactional outbox table [7] | No broker to run or secure; a handful of idempotent jobs | Celery + Redis (extra service and attack surface). Django 6.0's `django.tasks` ships only non-production backends and needs a third-party worker [8]; revisit (e.g. `procrastinate` on PostgreSQL) only if jobs must run within seconds |
-| LLM (v3) | **Anthropic Claude API** through the official Python SDK | Structured outputs, PDF input, prompt caching, Batch API [29] | n/a |
+| LLM (v3) | **OpenRouter** in front of several model vendors, called with `httpx` over its REST API. Models, fallback order and request settings: [`llm-models.md`](llm-models.md) | One integration reaches Anthropic, OpenAI and Google models, so one vendor's outage or failed evaluation does not stop extraction; zero-data-retention and EU-first routing per request; model prices equal the vendors' own [29] | Each vendor's own SDK (one integration, key and contract per vendor); the `openai` SDK pointed at OpenRouter (an extra dependency for one POST endpoint) |
 | Dependencies | **uv** with a hash-pinned lockfile; `pip-audit` in CI [17] | Reproducible builds; blocks silent package substitution | Unpinned `requirements.txt` |
 | Boundary checks | **import-linter** 2.x (`layers`, `independence`, `forbidden` contracts) [5] | One config file, one CLI call in CI; the longest track record | tach, pytestarch (both viable, less established for this use) |
 
@@ -139,10 +139,10 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 ├─────────────────────────────────── core (pure) ─────────────────────────────────┤
 │ catalog · rules (checklists, deadlines) · pricing                               │
 ├───────────────────────────────────── adapters ──────────────────────────────────┤
-│ kimdis_api · llm_claude · mailer · file_sandbox                                 │
+│ kimdis_api · llm_openrouter · mailer · file_sandbox                             │
 └─────────────────────────────────────────────────────────────────────────────────┘
         ▲ public data only                              ▲ public data only
-   ΚΗΜΔΗΣ OpenData API                              Claude API
+   ΚΗΜΔΗΣ OpenData API                              OpenRouter
 ```
 
 ### 5.2 Dependency rules
@@ -156,7 +156,7 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 
 ### 5.3 Enforcement in CI
 
-- import-linter contracts [5]: one `layers` contract (shell → apps → core); `forbidden` contracts (`core` must not import `django`, `requests`, `httpx`, `anthropic`; `ingestion` and `extraction` must not import `engagements`); one `independence` contract between application modules except through `api.py`.
+- import-linter contracts [5]: one `layers` contract (shell → apps → core); `forbidden` contracts (`core` must not import `django`, `requests`, `httpx`; `ingestion` and `extraction` must not import `engagements`); one `independence` contract between application modules except through `api.py`.
 - A CI check fails when a folder has no `CONTEXT.md` or a file is missing from its folder's `CONTEXT.md` (`CLAUDE.md` §2).
 
 ### 5.4 Folder layout (each folder is created only when its module is built)
@@ -166,10 +166,11 @@ src/tenderer/
   core/catalog/   core/rules/   core/pricing/
   apps/engagements/   apps/alerts/   apps/documents/   apps/audit/
   apps/ingestion/     apps/extraction/                     (v2, v3)
-  adapters/kimdis_api/  adapters/llm_claude/  adapters/mailer/  adapters/file_sandbox/
+  adapters/kimdis_api/  adapters/llm_openrouter/  adapters/mailer/  adapters/file_sandbox/
   shell/                (settings, urls, admin site, management commands)
 tests/                  (mirrors src/)
 tenders/                (exists: tender modules as data)
+reference/              (exists: dated snapshots of external data, e.g. the OpenRouter model catalog)
 reference/gr/           (Greek public-holiday calendar per year, reviewed data)
 ```
 
@@ -332,13 +333,13 @@ Privacy by design (AD5):
 | Security | Host allowlist; TLS verification on; timeouts; response-size caps; JSON checked against the expected shape; attachments stored with SHA-256 and size, parsed only in the sandbox (§6.9). The data is CC BY 4.0, so attribution is kept [28]. **Only the documented OpenData API is automated**; the ΕΣΗΔΗΣ submission portal is never scripted (its terms on automated access are **UNVERIFIED**, and scripting it would also break the no-credentials invariant) |
 | Build | v2, when monitoring becomes a paid feature. Before that, the desk research of `plan.md` §6 step 1 is a one-off script |
 
-### 6.9 `apps/extraction` + `adapters/file_sandbox` + `adapters/llm_claude`: from public files to reviewed data
+### 6.9 `apps/extraction` + `adapters/file_sandbox` + `adapters/llm_openrouter`: from public files to reviewed data
 
 | | |
 |---|---|
 | Responsibility | Turn a tender's files into *candidate* rows (requirements, route tables) for human review. It never writes to the catalog: its output is a proposed diff to `tenders/<id>/` |
 | Paradigm | Pipes and filters (each stage a pure function from one representation to the next), with I/O only at the ends, plus a human approval step |
-| Patterns | Chain of Responsibility (parser fallbacks); Strategy per file format; Sandbox; Maker-Checker; staging area |
+| Patterns | Chain of Responsibility (parser fallbacks, then the LLM fallback chain run by our code); Strategy per file format; N-version extraction (two independent models, union reviewed); Sandbox; Maker-Checker; staging area |
 | Build | v3, when onboarding tender #2 by hand costs more than building this |
 
 Pipeline:
@@ -349,26 +350,30 @@ Pipeline:
 4. **Verification.** Every extracted value carries `page` and a verbatim `quote`; code checks that the quote occurs in that page's text, as extracted by the sandboxed parser. A mismatch is rejected, never silently fixed.
 5. **Review queue.** An operator approves each row (maker-checker); approval produces the diff, and CI validates it like any other change to `tenders/`.
 
-LLM design (Claude API) [29]:
+LLM design (OpenRouter [29]; models, fallback order and every request setting are in [`llm-models.md`](llm-models.md)):
 
-- Input: public tender documents only (dependency rule 5). Tender documents still contain names of civil servants, which are personal data; sending them abroad relies on Anthropic's DPA with standard contractual clauses and its Data Privacy Framework participation [25].
-- Output: structured output constrained by a JSON Schema (`output_config.format`), parsed by the SDK and validated again by our own schema. The API's Citations feature cannot be combined with structured outputs (the request fails with HTTP 400), so the verbatim-quote check of step 4 does that job.
-- Limits: PDFs up to 32 MB and 600 pages per request. The current tender (64 pages, about 0.8 MB) fits.
-- Cost: prompt caching when several questions are asked of the same document; the Batch API (about half price, asynchronous) only for non-urgent backfills, never for an invitation with a 48-hour window.
-- Model: `claude-opus-5` by default. Moving to a cheaper model is the owner's decision, made after an evaluation against a gold set. The hand-built `requirements.csv` of the current tender is that gold set.
-- Every stop reason (`refusal`, `max_tokens`, ...) is handled explicitly; a partial answer is a failed run.
-- Budget: `max_tokens` per call, a daily spend cap, usage logged per run.
+- Input: public tender documents only (dependency rule 5), sent as the page-marked text the sandboxed parser produced, never as files. Every model then sees exactly the text the quote check uses, and no PDF plugin or OCR service becomes one more processor. Tender documents still contain names of civil servants, which are personal data; §10.8 covers the transfer.
+- Routing: every request is pinned to zero-data-retention endpoints that support every parameter sent, EU region first, and the OpenRouter account allows only the chain's models and providers.
+- Output: a JSON Schema in `response_format` with `strict: true`, validated again by our own schema, because some providers treat a schema as a hint rather than a guarantee.
+- Models: requirements are extracted by two models from different vendors on every tender, and the reviewer sees the union, because the quote check catches invented values but not omissions. A third model replaces either one if it fails. No model enters a chain before it passes the gold-set evaluation; the hand-built `requirements.csv` of the current tender is the first gold tender.
+- Fallback is our code's job, not OpenRouter's: its `models` array falls back only on errors, while an answer that ends with `length`, is empty or fails our schema must also move to the next model.
+- Reasoning is on, with effort set per task, and the reasoning text is excluded from the response: it is never stored or shown. Reasoning tokens are billed as output and count against `max_tokens`.
+- Every finish reason other than `stop` is a failed run, including `length` and empty content (billed, still failed); a partial answer is never used.
+- No `temperature`, `top_p`, `top_k` or `seed` is sent: Claude and GPT-6 do not accept them while reasoning, and Google recommends Gemini's default, so every call runs at temperature 1. No temperature makes answers repeatable, so the stored answer is the record (S4).
+- Budget: `max_tokens` and `max_price` per request, a per-key credit limit and a daily spend limit on the OpenRouter account, usage and cost logged per attempt.
+- Batch requests and prompt caching are not used; at our volume they would save a few dollars a month.
 
 OWASP Top 10 for LLM Applications 2025 [13]:
 
 | Risk | Control |
 |---|---|
 | LLM01 Prompt injection (instructions hidden in a tender PDF) | Document content is marked as data in the prompt; the model has no tools; output is schema-bound; quotes are verified; a human approves |
-| LLM02 Sensitive information disclosure | No client data is ever sent (dependency rule 5) |
+| LLM02 Sensitive information disclosure | No client data is ever sent (dependency rule 5); zero-data-retention endpoints only |
+| LLM03 Supply chain | Model and provider allowlists on the OpenRouter account; a model enters a chain only after the gold-set evaluation; a new endpoint snapshot triggers re-evaluation |
 | LLM05 Improper output handling | Output is untrusted: schema-validated, rendered with escaping in the admin (prevents XSS), never executed |
 | LLM06 Excessive agency | No tools and no permissions; code decides what happens next |
-| LLM09 Misinformation | Verbatim-quote check, gold-set evaluation, human approval |
-| LLM10 Unbounded consumption | `max_tokens`, file-size and page caps, daily spend cap |
+| LLM09 Misinformation | Verbatim-quote check, dual extraction, gold-set evaluation, human approval |
+| LLM10 Unbounded consumption | `max_tokens` and `max_price` per request, file-size and page caps, per-key credit limit, daily spend limit |
 
 Untrusted files [14][15][16]:
 
@@ -398,7 +403,7 @@ Untrusted files [14][15][16]:
 | apps/documents | Declarative templates | Template, snapshot tests | Presentation separate from logic; escaping by default |
 | apps/audit | Append-only event log | Database-enforced append-only, correlation id | Tamper resistance, traceability |
 | apps/ingestion | Imperative shell + pure mapping | Gateway, Anti-Corruption Layer, retry/backoff, rate limiter, idempotent upsert | I/O with an external system that fails and rate-limits |
-| apps/extraction | Pipes and filters + human workflow | Chain of Responsibility, Strategy, Sandbox, Maker-Checker | Untrusted input; every stage testable; a human approves |
+| apps/extraction | Pipes and filters + human workflow | Chain of Responsibility, Strategy, N-version extraction, Sandbox, Maker-Checker | Untrusted input; every stage testable; omissions caught by a second model; a human approves |
 | shell | Framework-driven | 12-factor configuration, DI by argument | Django's secure defaults; thin wiring |
 
 **Anti-patterns we avoid:** a general-purpose rules engine [6]; microservices; a DI container; a repository layer on top of the ORM; event sourcing; floats for money; naive datetimes; catching broad exceptions and carrying on; letting the LLM decide anything; storing documents "for convenience".
@@ -418,7 +423,7 @@ Untrusted files [14][15][16]:
 
 **F3. Provisional award (X3).** Electronic deadline 10 days after notification, paper originals by the 3rd working day after it (§5.3.1). Checklist R12–R21 with freshness measured against the planned submission date; reminders; guarantee-validity check.
 
-**F4. New tender (v3).** Files → sandboxed parsers → LLM for the rest → quote verification → review queue → pull request to `tenders/<id>/` → CI validates the schema → merge → the catalog loads the new version.
+**F4. New tender (v3).** Files → sandboxed parsers → LLM for the rest (two models for requirements) → quote verification → review queue → pull request to `tenders/<id>/` → CI validates the schema → merge → the catalog loads the new version.
 
 ---
 
@@ -436,7 +441,7 @@ Untrusted files [14][15][16]:
 | outbox (alerts) | idempotency_key, channel, recipient_ref, due_at, sent_at, attempts | Internal | `idempotency_key` unique |
 | audit_event (audit) | at, actor, action, object_ref, details | Internal | INSERT-only grant + trigger |
 | notice, attachment (ingestion, v2) | reference_number, cpv, organisation, dates, sha256 | Public | `reference_number` unique |
-| extraction_run, extracted_item (v3) | model, prompt_version, page, quote, quote_verified, review_status | Public | review transitions only in code |
+| extraction_run, extracted_item (v3) | Run (one per attempt): task, chain step, model and provider that answered, generation id, prompt and schema versions, finish reason, tokens, cost, raw answer. Item: page, quote, quote_verified, found_by, review_status | Public | review transitions only in code |
 
 | Class | Examples | Rule |
 |---|---|---|
@@ -450,6 +455,7 @@ Untrusted files [14][15][16]:
 ## 9. Deployment (v1)
 
 - One container image (Django app and job entrypoints); managed PostgreSQL; a transactional e-mail provider; object storage for public attachments from v2. **All in EU regions, each under a data-processing agreement.**
+- The LLM is the one exception to EU hosting (v3): requests go through OpenRouter to zero-data-retention endpoints, EU region first, and carry public tender text only (§6.9, §10.8). The OpenRouter account allows only the chain's models and providers, and each key has a credit limit (`llm-models.md` §6).
 - Operators reach the admin only through an identity-aware proxy or VPN with MFA [20]; the app also requires its own login with a second factor (defence in depth, C4).
 - **No public endpoints in v1.** Calendar files travel as attachments, so no feed or webhook is exposed.
 - Environments: `dev` with synthetic data only (real client data never leaves production); `prod`.
@@ -467,7 +473,7 @@ Untrusted files [14][15][16]:
 | TB1 Operator ↔ admin | Spoofing (stolen password); elevation of privilege | Identity-aware proxy + MFA (WebAuthn preferred) [20]; roles; session timeout; audit of views and exports |
 | TB2 App ← ΚΗΜΔΗΣ API | Tampering (unexpected payloads); denial of service (huge responses) | TLS verification, host allowlist, shape validation, size caps, timeouts |
 | TB3 App ← tender files | Code execution or denial of service through crafted PDF/XLSX | Sandbox with no network, resource limits, patched parsers, `defusedxml` (§6.9) |
-| TB4 App ↔ LLM API | Prompt injection, bad output, runaway cost, disclosure | §6.9 controls; public data only |
+| TB4 App ↔ LLM (OpenRouter and the provider behind it) | Prompt injection; invented or missing output; runaway cost; disclosure; routing to a provider that keeps or trains on data | §6.9 controls; public data only; zero-data-retention endpoints; model and provider allowlists; credit and spend limits (`llm-models.md` §6) |
 | TB5 App → client e-mail | Spoofing of our identity (phishing) | SPF, DKIM, DMARC `p=reject`; we never ask for credentials; minimum content |
 | TB6 Client ↔ operator (phone, e-mail) | Someone impersonates a client to change contact details and divert reminders | Contact changes confirmed by calling back the number on file; audited |
 | TB7 App ↔ database, backups | Information disclosure, tampering | Separate database roles; encryption at rest; append-only audit; encrypted backups; restore drills |
@@ -518,7 +524,7 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | DPIA | Not clearly mandatory on these facts (no Art. 9/10 data, not large scale, no systematic monitoring, no automated decisions with legal effect). Keep a written threshold assessment against Art. 35 and the ΑΠΔΠΧ list (decision 65/2018) anyway, and repeat it before v4 | [23] |
 | Records of processing (Art. 30) | The under-250-employees exemption applies only to occasional processing; client processing is our core activity, so **keep a record of processing** | [24] |
 | Retention | A written schedule per data class (Art. 5(1)(e)). N months after an engagement closes, set with the lawyer, taking into account the contract length (3 school years) and limitation periods for claims | [24] |
-| Transfers | Client personal data stays in the EU. Public tender documents sent to the Claude API still contain civil servants' names; the transfer relies on the EU-US Data Privacy Framework (upheld by the General Court in Latombe, T-553/23, 3 Sep 2025; appeal C-703/25 P pending) and on the SCCs in Anthropic's DPA as a second mechanism | [25] |
+| Transfers | Client personal data stays in the EU. Public tender text sent to the LLM still contains civil servants' names. It passes through OpenRouter (a US company) to Google Vertex AI or Microsoft Azure endpoints, EU region first, with zero data retention (`llm-models.md` §6). The transfer relies on the EU-US Data Privacy Framework (upheld by the General Court in Latombe, T-553/23, 3 Sep 2025; appeal C-703/25 P pending) for certified recipients, and on OpenRouter's data-processing agreement. OpenRouter's own certification and the agreement's wording are UNVERIFIED (§14) | [25] |
 | Breach notification | 72 hours to the ΑΠΔΠΧ when required; affected clients when the risk is high | [26] |
 | NIS2 (Law 5160/2024) | Unlikely to apply: micro-enterprise, not in a listed sector | [26] |
 | Open data reuse | ΚΗΜΔΗΣ OpenData is CC BY 4.0: keep attribution | [28] |
@@ -533,12 +539,13 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | H2 | Wrong or invalid price entered (X2, X5) | Float rounding; decimal discount; above budget; group mismatch | Decimal only; validator blocks; Annex III check; client confirms the numbers | Golden tests from §4.3.2; mutation testing of `core/pricing` |
 | H3 | "Ready" shown while a requirement is not met | Missing metadata; stale document; vague rule | Three-valued logic; freshness against the submission date; `manual` rules | Property test: no input renders `UNKNOWN` as satisfied |
 | H4 | Outdated tender rules applied | Tender amended; invitation-specific terms | Tender-data version pinned in every result; invitation terms entered and reviewed per invitation; "rules last verified" date shown | Review checklist per invitation |
-| H5 | Invented requirement or route (LLM) | Hallucination; prompt injection | Quote verification; human approval; gold-set evaluation | Extraction evaluation before enabling v3 |
+| H5 | Invented requirement or route (LLM) | Hallucination; prompt injection | Quote verification; dual extraction; human approval; gold-set evaluation | Extraction evaluation before enabling v3 |
 | H6 | Wrong client or wrong route | Operator error | Confirmation screens with name and ΑΦΜ digits; route filter shows `§` and source | UI tests |
 | H7 | Loss-making contract (X4) | Client underestimates cost or risk | Go/no-go required before `CHECKED`; fuel and cancellation warnings | State-machine guard test |
 | H8 | Personal-data breach (X6) | Attack; misconfiguration | §10 | ASVS L2 review; `check --deploy`; restore drill |
 | H9 | Client acts on phishing (X7) | Imitation of our e-mails | DMARC reject; no-credentials statement; minimum content | Periodic review of DMARC reports |
 | H10 | Reminders stop after a change | Regression | CI gates; smoke test of `plan_reminders` on synthetic data after every deploy | CI and deploy pipeline |
+| H11 | Requirement or route missed by extraction (LLM) | Long-document recall failure; answer cut at `max_tokens`; a fallback model weaker than the primary | Recall-first model choice; dual extraction with the union shown to the reviewer; `length` or empty answer is a failed run; every chain model passes the recall gate (`llm-models.md` §3, §4.4, §7) | Gold-set evaluation: 100% recall in 3 of 3 runs per chain model |
 
 ---
 
@@ -549,7 +556,7 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | v0 | Now | Spreadsheet + `tenders/` data + manual process | Spreadsheet in an EU-region workspace under a DPA, MFA on, no public sharing links, metadata only (the §8 prohibited list applies to v0 too) |
 | v1 | Step 5 gate | core/catalog, core/rules, core/pricing, engagements, alerts, documents (HTML + `.ics`), audit, shell | ASVS L2 self-review of the chapters in use; `check --deploy`; restore drill; record of processing; DPIA threshold assessment |
 | v2 | Monitoring is sold, or client numbers make manual tracking costly | ingestion + notices view | Rate-limit and attribution review; sandbox in place for attachments |
-| v3 | Onboarding tender #2 by hand costs more than building extraction | extraction (sandbox, LLM, review queue) | LLM evaluation on the gold set; LLM Top 10 review |
+| v3 | Onboarding tender #2 by hand costs more than building extraction | extraction (sandbox, LLM, review queue) | Every chain model passes the gold-set evaluation (`llm-models.md` §7); OpenRouter account settings checked (`llm-models.md` §6); LLM Top 10 review |
 | v4 | Clients ask for self-service | Client portal | Full ASVS L2 on the public surface; external penetration test; login rate limiting; account-recovery design; new DPIA assessment |
 
 ---
@@ -561,7 +568,7 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | core/rules, core/pricing | Unit tests; property-based tests with Hypothesis [10]; golden tests built from the tender's own rules and examples | 100% branch coverage on these packages; a mutation-score threshold (mutmut [10]) set after the first run |
 | Engagement and bid state machines | Table-driven tests of every transition, including illegal ones | Every transition covered |
 | Adapters | Contract tests against recorded, anonymised fixtures; a live smoke test behind a flag | Fixtures refreshed when the API changes |
-| extraction | Evaluation against the gold set (the current tender's `requirements.csv`) | Precision and recall thresholds set by the owner before v3 is enabled |
+| extraction | Evaluation against the gold set (the current tender's `requirements.csv` plus a second tender), 3 runs per model, production settings (`llm-models.md` §7) | 100% recall in every run for each chain model; precision threshold set by the owner before v3 is enabled |
 | Security | `check --deploy`, ruff security rules, `pip-audit`, secret scanning, import-linter | CI must pass |
 | Operations | Monthly restore drill; alert drill | Results recorded in the audit log |
 
@@ -577,8 +584,8 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | ΕΣΗΔΗΣ portal terms on automated access | UNVERIFIED | Irrelevant while we never automate the portal; ask the ΟΠΣ ΕΣΗΔΗΣ helpdesk before anything changes |
 | Art. 10 reading of "acknowledged on date X" | Reasoned opinion | Lawyer review before v1 |
 | Retention period N | Open | Set with the lawyer (§10.8) |
-| Anthropic data-retention terms for API inputs | Not checked | Read the current commercial terms before v3; low risk while only public documents are sent |
-| Cheaper LLM than `claude-opus-5` | Owner decision | Run the gold-set evaluation, then decide on measured quality and cost |
+| OpenRouter's DPA wording, its own log retention and its DPF certification | UNVERIFIED | Read OpenRouter's terms, DPA and privacy policy before v3; low risk while only public text is sent |
+| Greek extraction quality of the chain models | UNVERIFIED: no public benchmark covers Greek | Gold-set evaluation (`llm-models.md` §7). The other LLM open items are in `llm-models.md` §8 |
 
 ---
 
@@ -618,12 +625,12 @@ Research done on 2026-09-23. Secondary sources are marked; the claims resting on
 22. GDPR Art. 10: https://gdpr-info.eu/art-10-gdpr/ · Law 4624/2019 Art. 25: https://www.lawspot.gr/nomikes-plirofories/nomothesia/n-4624-2019/arthro-25-nomos-4624-2019-epexergasia-dedomenon · Art. 38: https://www.lawspot.gr/nomothesia/n-4624-2019/arthro-38-nomos-4624-2019-poinikes-kyroseis/
 23. GDPR Art. 35: https://gdpr-info.eu/art-35-gdpr/ · ΑΠΔΠΧ DPIA list: https://www.dpa.gr/sites/default/files/2020-12/article_35_dpia_list_en.pdf
 24. GDPR Art. 6: https://gdpr-info.eu/art-6-gdpr/ · Art. 30: https://gdpr-info.eu/art-30-gdpr/
-25. Latombe v Commission, T-553/23 (secondary): http://eulawanalysis.blogspot.com/2025/10/the-general-court-of-european-union.html · appeal C-703/25 P (secondary): https://digitalpolicyalert.org/event/35459-latombe-filed-appeal-against-general-court-dismissal-of-challenge-to-european-unionunited-states-data-protection-framework-adequacy-decision-in-latombe-v-commission · public data under GDPR: https://iapp.org/news/a/publicly-available-data-under-gdpr-main-considerations · Anthropic DPA and SCCs (secondary): https://compound.law/en-DE/tools/anthropic-scc/
+25. Latombe v Commission, T-553/23 (secondary): http://eulawanalysis.blogspot.com/2025/10/the-general-court-of-european-union.html · appeal C-703/25 P (secondary): https://digitalpolicyalert.org/event/35459-latombe-filed-appeal-against-general-court-dismissal-of-challenge-to-european-unionunited-states-data-protection-framework-adequacy-decision-in-latombe-v-commission · public data under GDPR: https://iapp.org/news/a/publicly-available-data-under-gdpr-main-considerations · OpenRouter DPA, Help Center (secondary): https://openrouter.zendesk.com/hc/en-us/articles/47828437697051
 26. ΑΠΔΠΧ breach notification: https://www.dpa.gr/el/foreis/asfaleia_dedomenwn/gnwstopoiisi_paraviasis · Law 5160/2024 (NIS2): https://www.ey.com/en_gr/technical/tax/tax-alerts/law-5160-2024-transposition-of-directive-nis-2
 27. Law 4412/2016 full text (Art. 60 on time limits): https://eadhsy.gr/n4412/n4412fulltext.html · Regulation 1182/71 (secondary): https://www.europarl.europa.eu/doceo/document//E-8-2017-007700_EN.html · Greek public holidays 2026: https://www.officeholidays.com/countries/greece/2026 · Whit Monday in the public sector: https://www.powergame.gr/ellada/1354670/agiou-pnevmatos-2026-pote-peftei-gia-poious-einai-argia-ti-ischyei-gia-to-dimosio/
 28. ΚΗΜΔΗΣ OpenData API help (350 requests/minute, CC BY 4.0): https://cerpp.eprocurement.gov.gr/khmdhs-opendata/help · Swagger: https://cerpp.eprocurement.gov.gr/khmdhs-opendata/swagger-ui/index.html
 
 **Product**
 
-29. Claude API reference bundled with Claude Code 2.1.280 (model table cached 2026-06-24): structured outputs through `output_config.format`; Citations incompatible with structured outputs (HTTP 400); PDF input up to 32 MB / 600 pages; prompt caching; Batch API. Re-check against the live documentation before v3.
+29. OpenRouter documentation (fetched 2026-09-23): provider routing https://openrouter.ai/docs/features/provider-routing · model fallbacks https://openrouter.ai/docs/guides/routing/model-fallbacks · structured outputs https://openrouter.ai/docs/features/structured-outputs · reasoning tokens https://openrouter.ai/docs/guides/best-practices/reasoning-tokens · zero data retention https://openrouter.ai/docs/guides/features/zdr · FAQ (fees) https://openrouter.ai/docs/faq. Model evidence, catalog snapshots and the full source list: [`llm-models.md`](llm-models.md) §9.
 30. Διακήρυξη ΔΣΑ Μεταφοράς Μαθητών Μ.Ε. Θεσσαλονίκης, ΑΔΑ ΨΡΘ97ΛΛ-ΕΕΚ (2026-03-06): https://diavgeia.gov.gr/doc/ΨΡΘ97ΛΛ-ΕΕΚ
