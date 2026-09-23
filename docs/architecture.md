@@ -251,7 +251,7 @@ go_no_go(route, cost_inputs, discount) -> Breakdown(net_per_day, net_per_year, b
 Safety rules:
 
 - `decimal.Decimal` only; floats are rejected at the boundary; the rounding policy is tender data. For the current tender: prices to 2 decimals, half up; integer discount; a decimal discount is rounded up by ΕΣΗΔΗΣ, so the validator blocks it (§4.3.2.1) (AD9).
-- Validator rules for the current tender (§4.3.2): integer discount; EUR; VAT excluded; price ≤ budget; one discount per route group; Annex III matches the ΕΣΗΔΗΣ form; a vehicle may serve several routes only in different operating zones, declared in the remarks field.
+- Validator rules for the current tender (§4.3.2): integer discount; EUR; VAT excluded; price ≤ budget; one discount per route group; the offer template (Annex III of the tender, Annex II in both 2026 taxi invitations) matches the ΕΣΗΔΗΣ form and states the discount in words; a vehicle may serve several routes only in different operating zones, declared in the remarks field. The v0 spreadsheet (`discovery/concierge-phase-b-workbook.xlsx`) implements these rules and the go/no-go; its tested cases are golden-test candidates for v1.
 - It never proposes a discount. It shows the break-even discount and the full computation (`CLAUDE.md` §5).
 - Every taxi go/no-go shows the fuel risk (no fuel adjustment, §6.6.4) and the cancellation risk (§7.6.1) as explicit warnings.
 
@@ -536,7 +536,7 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | ID | Hazard | Causes | Controls | Verified by |
 |---|---|---|---|---|
 | H1 | Deadline missed (X1, X3) | Wrong day counting; missing or moved holiday; job stopped; e-mail not delivered; client ignores it | Conservative `remind_by`; reviewed holiday file; dead man's switch; three channels; escalation to a phone call | Property and golden tests of `deadline()`; monthly alert drill (stop the scheduler, confirm the page) |
-| H2 | Wrong or invalid price entered (X2, X5) | Float rounding; decimal discount; above budget; group mismatch | Decimal only; validator blocks; Annex III check; client confirms the numbers | Golden tests from §4.3.2; mutation testing of `core/pricing` |
+| H2 | Wrong or invalid price entered (X2, X5) | Float rounding; decimal discount; above budget; group mismatch | Decimal only; validator blocks; offer-template check; client confirms the numbers | Golden tests from §4.3.2; mutation testing of `core/pricing` |
 | H3 | "Ready" shown while a requirement is not met | Missing metadata; stale document; vague rule | Three-valued logic; freshness against the submission date; `manual` rules | Property test: no input renders `UNKNOWN` as satisfied |
 | H4 | Outdated tender rules applied | Tender amended; invitation-specific terms | Tender-data version pinned in every result; invitation terms entered and reviewed per invitation; "rules last verified" date shown | Review checklist per invitation |
 | H5 | Invented requirement or route (LLM) | Hallucination; prompt injection | Quote verification; dual extraction; human approval; gold-set evaluation | Extraction evaluation before enabling v3 |
@@ -584,6 +584,7 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | ΕΣΗΔΗΣ portal terms on automated access | UNVERIFIED | Irrelevant while we never automate the portal; ask the ΟΠΣ ΕΣΗΔΗΣ helpdesk before anything changes |
 | Art. 10 reading of "acknowledged on date X" | Reasoned opinion | Lawyer review before v1 |
 | Retention period N | Open | Set with the lawyer (§10.8) |
+| Escort documents at the provisional award (R25 medical certificate, R21 declaration) | Reasoned opinion: the v0 workbook records only status and the certificate's expiry date, no names, the same kind of metadata as a driver's licence expiry; whether that date counts as health data (Art. 9) is not settled. The v1 data model has no escort entity | Lawyer review before v1, together with the Art. 10 item |
 | OpenRouter's DPA wording, its own log retention and its DPF certification | UNVERIFIED | Read OpenRouter's terms, DPA and privacy policy before v3; low risk while only public text is sent |
 | Greek extraction quality of the chain models | UNVERIFIED: no public benchmark covers Greek | Gold-set evaluation (`llm-models.md` §7). The other LLM open items are in `llm-models.md` §8 |
 

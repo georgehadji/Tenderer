@@ -10,7 +10,7 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 ├── CONTEXT.md           this map
 ├── .gitignore           keeps local tool state and private interview data out of git
 ├── .claude/             Claude Code project settings        → .claude/CONTEXT.md
-├── discovery/           customer interviews (plan step 2)    → discovery/CONTEXT.md
+├── discovery/           customer discovery (plan steps 2–4)  → discovery/CONTEXT.md
 ├── docs/                business plan, architecture, LLMs    → docs/CONTEXT.md
 ├── reference/           dated snapshots of external data     → reference/CONTEXT.md
 └── tenders/             one self-contained module per tender → tenders/CONTEXT.md
@@ -30,10 +30,11 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 | OpenRouter model catalog and endpoint snapshots (prices, capabilities, zero data retention) | [`reference/CONTEXT.md`](reference/CONTEXT.md) |
 | How tender modules are structured; `requirements.csv` schema | [`tenders/CONTEXT.md`](tenders/CONTEXT.md) |
 | Step-by-step workflow for the Thessaloniki student-transport ΔΣΑ (taxi) | [`tenders/pkm-meth-student-transport-dsa-2026/sop.md`](tenders/pkm-meth-student-transport-dsa-2026/sop.md) |
-| Document and requirement checklist for that tender (R1–R23) | [`tenders/pkm-meth-student-transport-dsa-2026/requirements.csv`](tenders/pkm-meth-student-transport-dsa-2026/requirements.csv) |
+| Document and requirement checklist for that tender (R1–R26) | [`tenders/pkm-meth-student-transport-dsa-2026/requirements.csv`](tenders/pkm-meth-student-transport-dsa-2026/requirements.csv) |
 | Desk research (plan step 1): 2026 taxi invitations, routes, outcomes, ΔΣΑ registry, proposed gate N | [`tenders/pkm-meth-student-transport-dsa-2026/desk-research-2026.md`](tenders/pkm-meth-student-transport-dsa-2026/desk-research-2026.md) |
 | Interview kit (plan step 2): who to interview, channels, consent, questions, how the gate is measured | [`discovery/interviews-taxi-2026.md`](discovery/interviews-taxi-2026.md) |
 | Concierge kit (plan step 3): meetings, what we record and never record, templates, record of processing; draft pilot agreement | [`discovery/concierge-phase-a-2026.md`](discovery/concierge-phase-a-2026.md) · [`discovery/pilot-agreement-draft.md`](discovery/pilot-agreement-draft.md) |
+| Concierge kit (plan step 4): invitation cycle, go/no-go meeting, pre-submission check; the go/no-go calculator, offer validator and Phase B document checklist spreadsheet | [`discovery/concierge-phase-b-2026.md`](discovery/concierge-phase-b-2026.md) · [`discovery/concierge-phase-b-workbook.xlsx`](discovery/concierge-phase-b-workbook.xlsx) |
 | Subagent model enforcement (Sonnet) | [`.claude/settings.json`](.claude/settings.json) |
 
 ## Folder index
@@ -41,7 +42,7 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 | Folder | CONTEXT file | Purpose |
 |---|---|---|
 | `.claude/` | [`.claude/CONTEXT.md`](.claude/CONTEXT.md) | Claude Code project settings shared through git |
-| `discovery/` | [`discovery/CONTEXT.md`](discovery/CONTEXT.md) | Customer discovery for the plan's gates: interview kit, concierge kit, templates, draft pilot agreement (filled data stays in the git-ignored `discovery/private/`) |
+| `discovery/` | [`discovery/CONTEXT.md`](discovery/CONTEXT.md) | Customer discovery for the plan's gates: interview kit, concierge kits for Phases A and B, templates, spreadsheet, draft pilot agreement (filled data stays in the git-ignored `discovery/private/`) |
 | `docs/` | [`docs/CONTEXT.md`](docs/CONTEXT.md) | Tender-agnostic strategy, planning, architecture and LLM-choice documents |
 | `reference/` | [`reference/CONTEXT.md`](reference/CONTEXT.md) | Dated snapshots of external reference data (OpenRouter model catalog and endpoints) |
 | `tenders/` | [`tenders/CONTEXT.md`](tenders/CONTEXT.md) | Tender modules and their shared data contract |

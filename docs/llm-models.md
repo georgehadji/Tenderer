@@ -285,7 +285,7 @@ OpenRouter's own rules: `temperature` ranges from 0 to 2 with a default of 1.0 [
 
 ## 7. Evaluation gate
 
-**Gold set.** T1: the current tender's hand-built [`requirements.csv`](../tenders/pkm-meth-student-transport-dsa-2026/requirements.csv) (R1–R23) with the text of its διακήρυξη [7], plus a second tender before v3 goes live: one tender cannot show recall on others. T2: a hand-checked route table from the first real invitation that needs T2.
+**Gold set.** T1: the current tender's hand-built [`requirements.csv`](../tenders/pkm-meth-student-transport-dsa-2026/requirements.csv) (R1–R26) with the text of its διακήρυξη [7], plus a second tender before v3 goes live: one tender cannot show recall on others. T2: a hand-checked route table from the first real invitation that needs T2.
 
 **Protocol.**
 
