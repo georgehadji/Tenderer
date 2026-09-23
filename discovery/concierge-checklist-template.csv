@@ -1,0 +1,10 @@
+client_id,item,vehicle,status,issued_on,expires_on,checked_on
+,R1,,UNKNOWN,,,
+,R2,,UNKNOWN,,,
+,R5,1,UNKNOWN,,,
+,R6,1,UNKNOWN,,,
+,R7,1,UNKNOWN,,,
+,ack:exclusion_grounds,,UNKNOWN,,,
+,R3,,UNKNOWN,,,
+,R4,,UNKNOWN,,,
+,milestone:accepted,,UNKNOWN,,,
