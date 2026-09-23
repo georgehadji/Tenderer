@@ -8,8 +8,9 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 /
 ├── CLAUDE.md            agent rules (navigation, CONTEXT sync, Sonnet subagents, modularity)
 ├── CONTEXT.md           this map
-├── .gitignore           keeps local tool state out of git
+├── .gitignore           keeps local tool state and private interview data out of git
 ├── .claude/             Claude Code project settings        → .claude/CONTEXT.md
+├── discovery/           customer interviews (plan step 2)    → discovery/CONTEXT.md
 ├── docs/                business plan, architecture, LLMs    → docs/CONTEXT.md
 ├── reference/           dated snapshots of external data     → reference/CONTEXT.md
 └── tenders/             one self-contained module per tender → tenders/CONTEXT.md
@@ -31,6 +32,7 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 | Step-by-step workflow for the Thessaloniki student-transport ΔΣΑ (taxi) | [`tenders/pkm-meth-student-transport-dsa-2026/sop.md`](tenders/pkm-meth-student-transport-dsa-2026/sop.md) |
 | Document and requirement checklist for that tender (R1–R23) | [`tenders/pkm-meth-student-transport-dsa-2026/requirements.csv`](tenders/pkm-meth-student-transport-dsa-2026/requirements.csv) |
 | Desk research (plan step 1): 2026 taxi invitations, routes, outcomes, ΔΣΑ registry, proposed gate N | [`tenders/pkm-meth-student-transport-dsa-2026/desk-research-2026.md`](tenders/pkm-meth-student-transport-dsa-2026/desk-research-2026.md) |
+| Interview kit (plan step 2): who to interview, channels, consent, questions, how the gate is measured | [`discovery/interviews-taxi-2026.md`](discovery/interviews-taxi-2026.md) |
 | Subagent model enforcement (Sonnet) | [`.claude/settings.json`](.claude/settings.json) |
 
 ## Folder index
@@ -38,6 +40,7 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 | Folder | CONTEXT file | Purpose |
 |---|---|---|
 | `.claude/` | [`.claude/CONTEXT.md`](.claude/CONTEXT.md) | Claude Code project settings shared through git |
+| `discovery/` | [`discovery/CONTEXT.md`](discovery/CONTEXT.md) | Customer discovery for the plan's gates: interview kit and log template (raw notes stay in the git-ignored `discovery/private/`) |
 | `docs/` | [`docs/CONTEXT.md`](docs/CONTEXT.md) | Tender-agnostic strategy, planning, architecture and LLM-choice documents |
 | `reference/` | [`reference/CONTEXT.md`](reference/CONTEXT.md) | Dated snapshots of external reference data (OpenRouter model catalog and endpoints) |
 | `tenders/` | [`tenders/CONTEXT.md`](tenders/CONTEXT.md) | Tender modules and their shared data contract |
