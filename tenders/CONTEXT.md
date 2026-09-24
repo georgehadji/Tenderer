@@ -17,6 +17,7 @@ One folder per tender (or ΔΣΑ). Each folder is a self-contained module. Addin
 | `requirements.csv` | yes | One row per requirement/document, in the schema below |
 | `desk-research-<year>.md` | no | Market numbers for the tender (Greek): invitations, routes, outcomes, with sources |
 | `routes-<category>-<year>.csv` | no | Route tables extracted from invitations. Research data, not a data contract: code must not read it until a schema is defined here |
+| `awards-<category>-<years>.csv` | no | Per-route outcomes from published award decisions: reference price, winning discount or barren. Research data, not a data contract, same rule as above. Never names of natural persons |
 
 Folder name: `<authority>-<area>-<subject>-<procedure>-<year>`, lowercase ASCII, hyphen-separated.
 
