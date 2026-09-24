@@ -1,0 +1,38 @@
+# Every gate of docs/build-plan.md M0. Actions are pinned by commit SHA (supply chain, docs/architecture.md §10.4).
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
+      - name: Install from the lockfile only
+        run: uv sync --locked
+      - name: CONTEXT.md coverage (CLAUDE.md §2)
+        run: uv run python scripts/check_context.py
+      - name: Lint and security rules
+        run: uv run ruff check .
+      - name: Types (strict on core and packs)
+        run: uv run mypy
+      - name: Module boundaries (docs/architecture.md §5.3)
+        run: uv run lint-imports
+      - name: Tests, with 100% branch coverage on core/rules (build-plan M2)
+        run: |
+          uv run pytest --cov --cov-branch --cov-report=term-missing:skip-covered
+          uv run coverage report --include='src/tenderer/core/rules/*' --fail-under=100
+      - name: Known vulnerabilities in dependencies
+        run: uv export --locked --no-dev --no-emit-project --format requirements-txt > requirements.txt && uv run pip-audit --strict -r requirements.txt
+      - name: Django deploy check with production settings
+        env:
+          DJANGO_ALLOWED_HOSTS: tenderer.example
+        run: DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')" uv run python manage.py check --deploy --fail-level WARNING

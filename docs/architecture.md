@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| Status | Proposed. Nothing is built yet. |
-| Date | 2026-09-23 |
-| Applies from | The v1 gate, `docs/plan.md` §6 step 5. Until then the product runs as v0 (§12) with no code. |
+| Status | Accepted for v1. M0–M3 built on 2026-09-24 ([`build-plan.md`](build-plan.md) §2); the rest is proposed. |
+| Date | 2026-09-23; extended 2026-09-24 for every sector, procedure type and country (AD13–AD21, §5.5, §6.12–§6.16) |
+| Applies from | v1. The owner started the build on 2026-09-24, before the gate of `docs/plan.md` §6 step 5, which still decides the v1 cut. |
 | Owns | Architecture style, module boundaries, the paradigm and patterns of each module, safety and security controls, stack, deployment, verification. |
-| Does not own | Business strategy ([`plan.md`](plan.md)); tender knowledge ([`tenders/`](../tenders/CONTEXT.md)). |
+| Does not own | Business strategy ([`plan.md`](plan.md)); build order and milestones ([`build-plan.md`](build-plan.md)); tender knowledge ([`tenders/`](../tenders/CONTEXT.md)). |
 
 Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim not confirmed against a primary source. Legal statements are reasoned opinions, **not legal advice**; a Greek data-protection lawyer should confirm §10.8 before v1 goes live. Tender references (`§4.3.2.1` etc.) point to the ΔΣΑ διακήρυξη ΑΔΑ ΨΡΘ97ΛΛ-ΕΕΚ [30].
 
@@ -28,6 +28,15 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 | AD10 | **The LLM reads only public tender documents**, as text, through OpenRouter on zero-data-retention endpoints; it returns schema-bound JSON, every value carries a verbatim quote that code checks, two models extract requirements independently, and a human approves ([`llm-models.md`](llm-models.md)) | Contains prompt injection, invented content and omissions; client data never reaches the LLM |
 | AD11 | **Transactional outbox + scheduled idempotent jobs + dead man's switch**, and every deadline goes out on three channels | A silent failure of reminders is the most likely way the product harms a client |
 | AD12 | **Target OWASP ASVS 5.0 Level 2** | L2 is the level for applications that hold personal data [11] |
+| AD13 | **Sector packs and jurisdiction packs.** Everything specific to a sector (resource kinds, cost model, document types) lives in `sectors/<id>/`; everything specific to a country (calendar, day counting, ID validators, deductions, e-procurement platform facts) in `jurisdictions/<cc>/`. Both register in plain in-repo registries | A new sector or country is a new package, not a core change. Plugin discovery (entry points, pluggy) waits until a third party ships packs [31] |
+| AD14 | **Opportunity model shaped on OCDS and eForms**: procedure → lots → items; awards; contracts; organisations. Internal normalised tables; each source maps in through an anti-corruption adapter | Country- and vendor-neutral; an official eForms-to-OCDS mapping exists; eForms notices on TED are mandatory since 25 Oct 2023 [33][34] |
+| AD15 | **Sector attributes in JSONB validated by the pack's JSON Schema**; no EAV tables, no table per sector | One `resource` table serves vehicles, staff, equipment and certificates; EAV is a known anti-pattern [35] |
+| AD16 | **Procedure lifecycles as data**: one transition table per procedure type (ΔΣΑ, open, framework, negotiated, direct award), one evaluator. No workflow engine | Lifecycles are weeks-to-years of status plus deadlines, which a status field, the outbox and scheduled jobs already cover [36] |
+| AD17 | **Offer shapes as a closed set of pricing strategies**: discount on a reference price, uniform discount, per-group discounts, unit-price schedule, lump sum, quality-price score projection. Tender data selects one | These are the shapes of Directive 2014/24 Art. 67 and Law 4412/2016 Art. 90 and 95 [37][38]; a new tender rarely needs a new shape |
+| AD18 | **Requirements carry the ESPD criterion id** where one exists | Exclusion and selection checks are written once and reused across tenders and countries [39] |
+| AD19 | **`tenant_id` on every business table from v1**; PostgreSQL row-level security switched on when a second operator firm joins (v5) | Almost free now; retrofitting tenancy onto live personal data is the expensive path [40] |
+| AD20 | **Matching inside PostgreSQL**: CPV prefix, NUTS region, value range and pack filters, plus Greek full-text search (PostgreSQL 13+) and `pg_trgm`. Embeddings only after a measured recall gap | No search cluster or vector database to run and secure [41] |
+| AD21 | **Jobs: cron in v1, procrastinate (PostgreSQL queue with periodic tasks) from v2** | v1 has four jobs; v2 polls several sources and needs retries and locks without adding a broker [42] |
 
 ---
 
@@ -41,7 +50,7 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 4. **Operability by 1–3 people**: few moving parts, managed services, low running cost.
 5. **Performance and load**: low priority. Tens to hundreds of clients; at most thousands of public notices a day.
 
-**What "scalable" means here.** The number of tenders, regions and verticals grows; the request rate does not. The architecture is built so that adding a tender needs no code change (AD3). Scaling for load is a non-goal until a measurement shows a need.
+**What "scalable" means here.** The number of tenders, sectors, procedure types, countries, data sources and (later) operator firms grows; the request rate does not. Adding a tender needs no code change (AD3); adding a sector or a country adds one pack and touches no core module (AD13, §5.5). Scaling for load is a non-goal until a measurement shows a need.
 
 ### 1.2 Harms we design against (safety)
 
@@ -58,7 +67,7 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 ### 1.3 Constraints
 
 - Product invariants, [`CLAUDE.md`](../CLAUDE.md) §5: no client credentials; never sign or submit for the client; no sensitive documents; the client decides the discount.
-- The plan's gates, `plan.md` §6: no code before step 5; build only what real client cycles showed is needed.
+- The plan's gates, `plan.md` §6: the owner started the build before step 5 (2026-09-24); build only what real client cycles showed is needed.
 - Client personal data and its processing stay in the EU. The one exception, public tender text sent to the LLM, is covered in §10.8.
 
 ---
@@ -118,7 +127,7 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 | Language | **Python 3.13** or newer, within the range the chosen Django version supports (Django 6.1: 3.12–3.14 [18]) | Best libraries for PDF/XLSX parsing; `decimal` and `zoneinfo` in the standard library; Hypothesis [10] | TypeScript (weaker PDF/table extraction); Go (more code for CRUD and admin) |
 | Web framework | **Django, the newest LTS available when v1 starts.** Today: 5.2 LTS, security fixes until 30 Apr 2028. 6.0 (3 Dec 2025) added built-in CSP; 6.1 released 5 Aug 2026 [18][19]. The next LTS, 6.2, is expected around April 2027 (**UNVERIFIED**). On 5.2, add CSP with the `django-csp` package | The admin is the operator UI for free; CSRF protection, template auto-escaping, clickjacking protection and secure sessions by default; migrations; parameterised ORM queries | FastAPI, Flask (security features assembled by hand; no admin) |
 | Database | **PostgreSQL 17 or 18**, managed, EU region. Not 14 (end of life 12 Nov 2026); Django 6.1 needs 15+ [21][18] | CHECK and UNIQUE constraints enforce invariants in the database; roles and grants give an append-only audit table; point-in-time recovery | SQLite (no role separation; fine only for throwaway prototypes) |
-| Background work | **Cron (or the platform scheduler) calling Django management commands**, with a transactional outbox table [7] | No broker to run or secure; a handful of idempotent jobs | Celery + Redis (extra service and attack surface). Django 6.0's `django.tasks` ships only non-production backends and needs a third-party worker [8]; revisit (e.g. `procrastinate` on PostgreSQL) only if jobs must run within seconds |
+| Background work | **Cron (or the platform scheduler) calling Django management commands**, with a transactional outbox table [7] | No broker to run or secure; a handful of idempotent jobs | Celery + Redis (extra service and attack surface). Django 6.0's `django.tasks` ships only non-production backends and needs a third-party worker [8]; from v2, **procrastinate** (PostgreSQL only, periodic tasks, retries, locks; 3.10.0 on 2026-09-23) replaces cron when several sources are polled (AD21) [42] |
 | LLM (v3) | **OpenRouter** in front of several model vendors, called with `httpx` over its REST API. Models, fallback order and request settings: [`llm-models.md`](llm-models.md) | One integration reaches Anthropic, OpenAI and Google models, so one vendor's outage or failed evaluation does not stop extraction; zero-data-retention and EU-first routing per request; model prices equal the vendors' own [29] | Each vendor's own SDK (one integration, key and contract per vendor); the `openai` SDK pointed at OpenRouter (an extra dependency for one POST endpoint) |
 | Dependencies | **uv** with a hash-pinned lockfile; `pip-audit` in CI [17] | Reproducible builds; blocks silent package substitution | Unpinned `requirements.txt` |
 | Boundary checks | **import-linter** 2.x (`layers`, `independence`, `forbidden` contracts) [5] | One config file, one CLI call in CI; the longest track record | tach, pytestarch (both viable, less established for this use) |
@@ -135,14 +144,17 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 ┌──────────────────────────── shell (Django project) ─────────────────────────────┐
 │ admin UI · management commands (scheduled jobs) · settings · wiring             │
 ├─────────────────────────────── application modules ─────────────────────────────┤
-│ engagements · alerts · documents · audit · ingestion (v2) · extraction (v3)     │
+│ engagements · alerts · documents · audit                                        │
+│ opportunities · ingestion · matching (v2) · extraction (v3)                     │
 ├─────────────────────────────────── core (pure) ─────────────────────────────────┤
-│ catalog · rules (checklists, deadlines) · pricing                               │
+│ catalog · rules (checklists, deadlines) · pricing · lifecycle · matching        │
+├──────────────────────────────── packs (pure, data) ─────────────────────────────┤
+│ sectors/<id> (taxi_student_transport, …) · jurisdictions/<cc> (gr, …)           │
 ├───────────────────────────────────── adapters ──────────────────────────────────┤
-│ kimdis_api · llm_openrouter · mailer · file_sandbox                             │
+│ kimdis_api · diavgeia_api · ted_api · llm_openrouter · mailer · file_sandbox    │
 └─────────────────────────────────────────────────────────────────────────────────┘
         ▲ public data only                              ▲ public data only
-   ΚΗΜΔΗΣ OpenData API                              OpenRouter
+   ΚΗΜΔΗΣ, Διαύγεια, TED APIs                       OpenRouter
 ```
 
 ### 5.2 Dependency rules
@@ -153,28 +165,60 @@ Numbers in square brackets point to §15 (Sources). **UNVERIFIED** marks a claim
 4. Only `shell` wires adapters into modules.
 5. **`ingestion` and `extraction` must not import `engagements`.** They can never see client data, so "no client data reaches the LLM" (AD10) is enforced by the build, not by discipline.
 6. Application modules call each other only through the functions in each module's `api.py`, never through another module's models.
+7. **Packs** (`sectors/*`, `jurisdictions/*`) import only the standard library and `core/*` types; they never import Django, adapters or each other. `core/*` never imports a pack: it defines the protocols (`SectorPack`, `JurisdictionPack`) and receives packs through the registries that `shell` fills at start-up. Application modules reach a pack only through those registries, never by name.
 
 ### 5.3 Enforcement in CI
 
-- import-linter contracts [5]: one `layers` contract (shell → apps → core); `forbidden` contracts (`core` must not import `django`, `requests`, `httpx`; `ingestion` and `extraction` must not import `engagements`); one `independence` contract between application modules except through `api.py`.
+- import-linter contracts [5]: one `layers` contract (shell → apps → core); `forbidden` contracts (`core` and packs must not import `django`, `requests`, `httpx`; packs must not import apps or adapters; `core` and apps must not import packs, since only `shell` does; `ingestion` and `extraction` must not import `engagements`); `independence` contracts between application modules except through `api.py`, between sector packs, and between jurisdiction packs.
+- The scalability acceptance test of [`build-plan.md`](build-plan.md) §3: a pull request that adds a sector or jurisdiction may change only that pack, tender data, `reference/` and their tests.
 - A CI check fails when a folder has no `CONTEXT.md` or a file is missing from its folder's `CONTEXT.md` (`CLAUDE.md` §2).
 
 ### 5.4 Folder layout (each folder is created only when its module is built)
 
 ```
 src/tenderer/
-  core/catalog/   core/rules/   core/pricing/
+  core/catalog/   core/rules/   core/pricing/   core/lifecycle/   core/matching/ (v2)
+  sectors/taxi_student_transport/   sectors/<id>/ …      (one package per sector, AD13)
+  jurisdictions/gr/                 jurisdictions/<cc>/ … (one package per country, AD13)
   apps/engagements/   apps/alerts/   apps/documents/   apps/audit/
-  apps/ingestion/     apps/extraction/                     (v2, v3)
-  adapters/kimdis_api/  adapters/llm_openrouter/  adapters/mailer/  adapters/file_sandbox/
-  shell/                (settings, urls, admin site, management commands)
-tests/                  (mirrors src/)
-tenders/                (exists: tender modules as data)
+  apps/opportunities/ apps/ingestion/ apps/matching/       (v2)
+  apps/extraction/                                         (v3)
+  adapters/kimdis_api/  adapters/diavgeia_api/  adapters/ted_api/
+  adapters/llm_openrouter/  adapters/mailer/  adapters/file_sandbox/
+  shell/                (settings, urls, admin site, management commands, pack registration)
+tests/                  (one test file per module)
+tenders/                (exists: tender modules as data; each gets a `tender.toml` manifest when `core/catalog` is built)
 reference/              (exists: dated snapshots of external data, e.g. the OpenRouter model catalog)
 reference/gr/           (Greek public-holiday calendar per year, reviewed data)
+reference/cpv/, reference/nuts/   (classification lists, v2)
 ```
 
 Each folder receives its own `CONTEXT.md` when it is created.
+
+### 5.5 Scaling across sectors, procedures and countries
+
+The core knows about tenders, requirements, resources, deadlines, offers and money; it knows nothing about taxis, Greece or ΕΣΗΔΗΣ. Everything specific enters through one of five extension points, each with a fixed contract:
+
+| Extension point | Contract (typed, in `core/*`) | Supplied by | Example |
+|---|---|---|---|
+| Tender | `tender.toml` + `requirements.csv` (§6.1) | `tenders/<id>/` data | the ΔΣΑ of this repo |
+| Sector | `SectorPack`: resource kinds with JSON Schemas, a cost-model strategy for go/no-go, document types, default warnings | `sectors/<id>/` (§6.12) | vehicle, driver and escort kinds; fuel and wear costs; the fuel-risk warning of §6.6.4 |
+| Procedure type | Lifecycle template: states, transitions, guards named by id (§6.14) | data in `core/lifecycle` | `dps`: admission, call-off, award, contract |
+| Offer shape | Pricing strategy keyed by `offer_shape` (§6.3) | `core/pricing` (closed set) | `discount_on_reference`, `uniform_discount` |
+| Country | `JurisdictionPack`: calendar and day-counting strategies, ID validators, deductions on payments, platform facts | `jurisdictions/<cc>/` + `reference/<cc>/` (§6.13) | ΑΦΜ check digit, Orthodox Easter, Regulation 1182/71 conventions, the 0.12432% deductions |
+| Data source | Port `ProcurementSource` → OCDS-shaped opportunity (§6.15) | `adapters/*` | ΚΗΜΔΗΣ, Διαύγεια, TED |
+
+Why packs and not the alternatives:
+
+| Option | Verdict |
+|---|---|
+| A Django app per sector with its own models | Rejected: N sets of migrations and admin screens, and cross-sector queries need unions |
+| EAV tables for sector attributes | Rejected: no types, one join per filtered attribute [35] |
+| Plugin discovery (entry points, pluggy) | Deferred: pays off only when packs are installed independently by third parties [31] |
+| A rules or workflow engine | Rejected: §3 and [6], [36] |
+| **Pure in-repo packs registered by `shell`, attributes in JSONB validated by JSON Schema** | **Chosen**: one set of tables, typed contracts, packs testable without a database |
+
+The proof is a test, not a promise: [`build-plan.md`](build-plan.md) §3 fails the build of sector #2 if it touches anything outside its pack and its data.
 
 ---
 
@@ -197,12 +241,16 @@ Each folder receives its own `CONTEXT.md` when it is created.
 | Column | Values | Example (R12) |
 |---|---|---|
 | `doc_type` | Stable key that joins to document metadata | `criminal_record_extract` |
-| `applies_to` | `client`, `vehicle`, `driver`, `offer`, `engagement` | `client` |
+| `applies_to` | `client`, `offer`, `engagement`, or a resource kind of the sector pack (`vehicle`, `driver`, `escort` for taxis) | `client` |
 | `validity_kind` | `in_force`, `issued_within`, `signed_after`, `valid_until`, `none`, `manual` | `issued_within` |
 | `validity_amount`, `validity_unit` | Integer; `days`, `working_days`, `months` | `3`, `months` |
 | `validity_anchor` | `submission`, `invitation_sent`, `offer_validity_end`, `contract_end` | `submission` |
 
+| `espd_criterion` | ESPD criterion id (ESPD-EDM static UUID) when the requirement is an exclusion or selection criterion; empty otherwise (AD18) [39] | empty for R12 (national evidence document); the id of the "criminal convictions" ground for the ΕΕΕΣ answer it proves |
+
 `manual` is for rules the tender leaves vague, e.g. R16 "recent". The evaluator returns *unknown* for them and an operator checks by hand (S1).
+
+**`tender.toml` manifest** (one per tender folder, added with `core/catalog`; TOML because Python reads it with the standard library, and rates are decimal strings because TOML floats are binary): `id`, `sector` (pack id), `jurisdiction` (pack id), `lifecycle` (template id, §6.14), `offer_shape` (§6.3), `rounding`, `sources` (ΑΔΑ, ΚΗΜΔΗΣ reference, OCDS id when one exists), `schema_version`. The catalog refuses a tender whose pack, template or shape is not registered (fail closed, S1).
 
 ### 6.2 `core/rules`: checklists and deadlines
 
@@ -210,7 +258,7 @@ Each folder receives its own `CONTEXT.md` when it is created.
 |---|---|
 | Responsibility | (a) For one engagement and one planned submission, the status of every requirement. (b) Every deadline, from its legal rule and the holiday calendar |
 | Paradigm | Pure functional: total functions, immutable inputs, no I/O, no clock reads; decision tables for validity rules |
-| Patterns | Decision table / Specification (one small evaluator per `validity_kind`, kept in a dict, not a class hierarchy); Result objects for business outcomes instead of exceptions; Strategy for day-counting conventions |
+| Patterns | Decision table / Specification (one small evaluator per `validity_kind`, kept in a dict, not a class hierarchy); Result objects for business outcomes instead of exceptions; Strategy for day-counting conventions, supplied by the jurisdiction pack (§6.13) so that another country's rules plug in without touching the evaluator |
 | Security | No personal data leaves the function; inputs are value objects |
 | Build | v1 |
 
@@ -237,7 +285,20 @@ Safety rules:
 |---|---|
 | Responsibility | Reference price per route (tender-specific formula); validation of the offer the client intends to type into ΕΣΗΔΗΣ; go/no-go breakdown (`plan.md` §5) |
 | Paradigm | Pure functional with value objects |
-| Patterns | Value Objects `Money` (Decimal, EUR) and `Percent`; Strategy registry keyed by the formula id declared in the tender data (e.g. the taxi formula of ΚΥΑ 50025/2018, based on Tariff 2, §6.6.4); explainable computation (every result carries its line items) |
+| Patterns | Value Objects `Money` (Decimal plus ISO 4217 currency; EUR today) and `Percent`; Strategy registry keyed by the formula id declared in the tender data (e.g. the taxi formula of ΚΥΑ 50025/2018, based on Tariff 2, §6.6.4); a second Strategy registry keyed by `offer_shape` (below); the cost model of go/no-go comes from the sector pack (§6.12); explainable computation (every result carries its line items) |
+
+**Offer shapes (AD17).** A closed set; the tender's `tender.toml` picks one. Each shape has its own validator and its own go/no-go input:
+
+| `offer_shape` | What the client offers | Where it occurs | Build |
+|---|---|---|---|
+| `discount_on_reference` | Integer discount per route or group on a published reference price | This ΔΣΑ (§4.3.2) | v1 |
+| `uniform_discount` | One discount on the whole priced bill | Public works, Law 4412/2016 Art. 90 [38] | with the first works tender |
+| `group_discounts` | One discount per group of works items | Public works, Law 4412/2016 Art. 95 [38] | with the first tender that needs it |
+| `unit_prices` | A price per line of a bill of quantities; total = Σ quantity × unit price | Supplies and services | with the first tender that needs it |
+| `lump_sum` | One total price | Supplies and services, lowest price or lowest cost (Directive 2014/24 Art. 67) [37] | with the first tender that needs it |
+| `quality_price_score` | Price plus quality sub-criteria; the tool projects the score from the tender's formula and weights, it never scores the quality part itself | Best price-quality ratio (Art. 67) [37] | with the first tender that needs it |
+
+The discount itself is never proposed, whatever the shape (`CLAUDE.md` §5).
 | Security | No personal data; pure |
 | Build | v1 (replaces the spreadsheet of `plan.md` §5) |
 
@@ -259,12 +320,12 @@ Safety rules:
 
 | | |
 |---|---|
-| Responsibility | The records the service needs about a client, and the lifecycle of each client × tender engagement and each bid |
+| Responsibility | The records the service needs about a client and the client's resources (vehicles, staff, equipment, certificates: any kind a sector pack defines), and the lifecycle of each client × tender engagement and each bid |
 | Paradigm | Object-oriented domain model persisted with the Django ORM (active record). Decisions are delegated to `core/*`; models hold identity, state and invariants |
-| Patterns | Entity; Value Objects validated at the boundary (ΑΦΜ with check digit, plate, E.164 phone, e-mail); **State machine** as a transition table with guards; Repository = the Django model manager (no extra repository layer) |
+| Patterns | Entity; Value Objects validated at the boundary (ID validators from the jurisdiction pack, e.g. ΑΦΜ with check digit; plate; E.164 phone; e-mail); **State machine** driven by the lifecycle template of the tender's procedure type (§6.14); **typed JSONB**: one `resource` table whose `attributes` are validated against the sector pack's JSON Schema on every write (AD15); Repository = the Django model manager (no extra repository layer); services for writes and selectors for reads, per module [43] |
 | Build | v1 |
 
-State machines (each transition writes an audit event; an illegal transition raises):
+State machines of the `dps` lifecycle template, the one this ΔΣΑ uses (§6.14; other procedure types have their own tables; each transition writes an audit event; an illegal transition raises):
 
 ```
 Engagement: ONBOARDING → REGISTERED (ΕΣΗΔΗΣ) → APPLIED (ΕΕΕΣ) → ADMITTED → CONTRACTED → CLOSED
@@ -326,7 +387,7 @@ Privacy by design (AD5):
 
 | | |
 |---|---|
-| Responsibility | Poll the ΚΗΜΔΗΣ OpenData API for notices and contracts by CPV (60130000-8) and organisation; store metadata; download attachments |
+| Responsibility | Poll the ΚΗΜΔΗΣ OpenData API for notices and contracts by CPV (60130000-8 today; any CPV list a client profile needs from v2) and organisation; map them into `opportunities` (§6.15); download attachments. Διαύγεια and TED follow the same design as further adapters behind the same port |
 | Paradigm | Imperative shell around pure mapping functions |
 | Patterns | Gateway/Adapter behind a port (`ProcurementRegistry`); Anti-Corruption Layer (external JSON → validated internal types); retry with exponential backoff and jitter that honours `Retry-After`; client-side token bucket below the published 350 requests/minute [28]; stop-and-alert after repeated failures (a minimal circuit breaker); idempotent upsert keyed on `referenceNumber`; checkpoint of the last complete time window |
 | Safety | A gap in polling is itself an alert (S5); every notice shows its `referenceNumber` and source link so the operator checks the original |
@@ -404,9 +465,69 @@ Untrusted files [14][15][16]:
 | apps/audit | Append-only event log | Database-enforced append-only, correlation id | Tamper resistance, traceability |
 | apps/ingestion | Imperative shell + pure mapping | Gateway, Anti-Corruption Layer, retry/backoff, rate limiter, idempotent upsert | I/O with an external system that fails and rate-limits |
 | apps/extraction | Pipes and filters + human workflow | Chain of Responsibility, Strategy, N-version extraction, Sandbox, Maker-Checker | Untrusted input; every stage testable; omissions caught by a second model; a human approves |
-| shell | Framework-driven | 12-factor configuration, DI by argument | Django's secure defaults; thin wiring |
+| shell | Framework-driven | 12-factor configuration, DI by argument, pack registration | Django's secure defaults; thin wiring |
+| sectors/* (§6.12) | Declarative data + pure functions | Plugin by registry, Strategy (cost model), JSON Schema per resource kind | A new sector is a package, not a core change |
+| jurisdictions/* (§6.13) | Declarative data + pure functions | Plugin by registry, Strategy (day counting), Value Object (national IDs) | A new country is a package plus reviewed calendars |
+| core/lifecycle (§6.14) | Declarative state machines + pure evaluator | Transition table, guards by id, Specification | One evaluator for every procedure type; every transition testable |
+| apps/opportunities (§6.15) | Data model shaped on a public standard | Anti-Corruption Layer per source, idempotent upsert, canonical model (OCDS) | Sources come and go; the model does not |
+| core/matching + apps/matching (§6.16) | Pure scoring + database search | Specification (filters), weighted score with explanation | Explainable matches; no extra infrastructure |
 
-**Anti-patterns we avoid:** a general-purpose rules engine [6]; microservices; a DI container; a repository layer on top of the ORM; event sourcing; floats for money; naive datetimes; catching broad exceptions and carrying on; letting the LLM decide anything; storing documents "for convenience".
+**Anti-patterns we avoid:** a general-purpose rules engine [6]; a workflow engine [36]; microservices; a DI container; a repository layer on top of the ORM; event sourcing; EAV tables [35]; one Django app or table set per sector; floats for money; naive datetimes; catching broad exceptions and carrying on; letting the LLM decide anything; storing documents "for convenience".
+
+### 6.12 `sectors/<id>`: sector packs
+
+| | |
+|---|---|
+| Responsibility | Everything that differs between sectors: resource kinds and their attributes; the cost model for go/no-go; sector document types and their default validity rules; sector warnings (e.g. the taxi fuel risk, §6.6.4) |
+| Paradigm | Declarative data (JSON Schemas, CSV) plus pure functions; no Django, no I/O |
+| Patterns | Plugin by registry (`shell` registers each pack in the `core/catalog` registry at start-up); Strategy (cost model implements the `CostModel` protocol); JSON Schema per resource kind, with a `schema_version` so stored attributes can be migrated |
+| Interface | `SectorPack(id, resource_kinds: dict[str, JsonSchema], cost_model: CostModel, document_types, warnings)` |
+| Safety | A pack ships golden tests for its cost model; a tender cannot load if its pack is missing (§6.1). Personal attributes are declared as such in the schema (`"x-personal": true`) so export, erasure and log redaction find them |
+| Build | v1: `taxi_student_transport`. Sector #2 is the scalability acceptance test ([`build-plan.md`](build-plan.md) §3) |
+
+### 6.13 `jurisdictions/<cc>`: country packs
+
+| | |
+|---|---|
+| Responsibility | Everything that differs between countries: public-holiday calendars and day-counting conventions; national ID validators (ΑΦΜ); deductions on public payments (e.g. the 0.12% plus stamp duty of §6.6.2); the national e-procurement platform facts (ΕΣΗΔΗΣ, how it rounds discounts); language of documents |
+| Paradigm | Declarative data plus pure functions |
+| Patterns | Plugin by registry; Strategy (day counting, holiday computation); Value Object (national IDs) |
+| Safety | Calendars are reviewed data per year in `reference/<cc>/` (§6.2); a missing year makes deadlines `ambiguous` |
+| Build | v1: `gr`. A second country only with a real client there (v5) |
+
+### 6.14 `core/lifecycle`: procedure types as data
+
+| | |
+|---|---|
+| Responsibility | The states, transitions and guards of an engagement and of a bid, per procedure type |
+| Paradigm | Declarative state machines evaluated by one pure function |
+| Patterns | Transition table `{state: {event: (next_state, guard_ids)}}`; guards named by id and implemented once in `core/rules` or `core/pricing` (Specification); no library: a hand-written table is fully inspectable and its tests are table-driven. `python-statemachine` is the upgrade path only if nested or parallel states appear [36] |
+| Templates | `dps` (admission, then call-off per invitation; this ΔΣΑ); `open` (one-stage open procedure); `framework` (agreement, then mini-competitions); `negotiated` (short deadlines, often outside the platform, e.g. the 48-hour negotiations of `plan.md` §1); `direct_award` |
+| Safety | Each template ships its table-driven tests, including illegal transitions; a guard id that does not resolve makes the template fail to load |
+| Build | v1: `dps` and `open`; the others with their first real tender |
+
+### 6.15 `apps/opportunities`: the procurement data model
+
+| | |
+|---|---|
+| Responsibility | Normalised public procurement data from every source: procedures, lots, items, awards, contracts, buying organisations, document references |
+| Paradigm | Relational data model shaped on a public standard |
+| Patterns | Canonical model aligned with OCDS 1.1.5 and its lots extension, and with the OCDS-for-eForms mapping [33][34]; Anti-Corruption Layer per source (`kimdis_api`, `diavgeia_api`, `ted_api`), each implementing the `ProcurementSource` port; idempotent upsert keyed on the source's id; CPV 2008 and NUTS as reference data. Only organisations are stored as parties: names of natural persons that appear in award decisions are dropped at the adapter (C1) |
+| Safety | Every opportunity keeps its source link and id, so the operator checks the original (S4) |
+| Security | Public data only; ingestion rules of §6.8 apply to every adapter |
+| Build | v2 |
+
+The CPV vocabulary in force is still the 2008 version: Regulation (EU) 2022/943 only corrected some language versions [44]. The ΚΗΜΔΗΣ API does not publish OCDS today; OCDS alignment is a goal of its redesign [45]. TED API v3 searches eForms notices without an API key [34].
+
+### 6.16 `core/matching` + `apps/matching`: which opportunities fit which client
+
+| | |
+|---|---|
+| Responsibility | For each client interest profile (CPV prefixes, NUTS regions, value range, sector-pack filters such as vehicle category or capacity), rank new opportunities and explain why each one matched |
+| Paradigm | Pure scoring function over value objects (`core/matching`); the candidate search runs in PostgreSQL (`apps/matching`) |
+| Patterns | Specification (hard filters: region, category, eligibility facts the client already has); weighted score with a per-term explanation; PostgreSQL full-text search with the built-in `greek` configuration (PostgreSQL 13 and later) plus `pg_trgm` for fuzzy titles [41]; `pgvector` only after a measured recall gap |
+| Safety | A match is a suggestion shown to the operator with its reasons; it never starts a bid on its own (S3) |
+| Build | v2, when monitoring is sold |
 
 ---
 
@@ -432,15 +553,15 @@ Untrusted files [14][15][16]:
 | Table (module) | Key fields | Class | Constraints |
 |---|---|---|---|
 | client (engagements) | name, afm, phone, email, retention_until | Personal | `afm` unique, check-digit CHECK; validated e-mail and phone |
-| vehicle | client, plate, category, seats, base_municipality | Personal | plate unique per client |
-| driver | client, display_name, licence_valid_until, special_licence_valid_until | Personal (third party) | minimum fields only |
-| document_record | owner (client/vehicle/driver), doc_type, issued_on, valid_until, seen_by, seen_at | Personal (metadata) | `valid_until ≥ issued_on` |
+| resource | client, kind (from the sector pack), label, attributes (JSONB), schema_version. Taxi kinds: `vehicle` (plate, category, seats, base municipality), `driver` (display name, licence expiry dates), `escort` (display label, certificate expiry only) | Personal (vehicles, and third parties for staff kinds) | `attributes` valid against the pack's JSON Schema; uniqueness keys declared by the schema (e.g. plate per client); minimum fields only |
+| document_record | owner (client or resource), doc_type, issued_on, valid_until, seen_by, seen_at | Personal (metadata) | `valid_until ≥ issued_on` |
 | engagement | client, tender_id, state, admitted_on | Personal | state from the allowed set; transitions only in code |
 | bid | engagement, invitation_ref, route_ids, discount_pct, state, gonogo_snapshot | Personal | `discount_pct` integer 0–100 CHECK |
 | acknowledgement | engagement, kind, acknowledged_at | Personal | no free text |
 | outbox (alerts) | idempotency_key, channel, recipient_ref, due_at, sent_at, attempts | Internal | `idempotency_key` unique |
 | audit_event (audit) | at, actor, action, object_ref, details | Internal | INSERT-only grant + trigger |
-| notice, attachment (ingestion, v2) | reference_number, cpv, organisation, dates, sha256 | Public | `reference_number` unique |
+| opportunity, lot, item, award, contract, organisation, document_ref (opportunities, v2) | source, source_id, OCDS-aligned fields, CPV, NUTS, values, dates, sha256 of attachments | Public | (`source`, `source_id`) unique; no natural persons |
+| interest_profile (matching, v2) | client, CPV prefixes, NUTS, value range, pack filters | Personal (business profile) | one per client and sector |
 | extraction_run, extracted_item (v3) | Run (one per attempt): task, chain step, model and provider that answered, generation id, prompt and schema versions, finish reason, tokens, cost, raw answer. Item: page, quote, quote_verified, found_by, review_status | Public | review transitions only in code |
 
 | Class | Examples | Rule |
@@ -449,6 +570,8 @@ Untrusted files [14][15][16]:
 | Internal | Outbox, audit events, cost models | No personal data in logs |
 | Personal | Client and driver identity, plates, document metadata, bids | EU-only storage; encryption at rest; access audited; retention schedule |
 | **Prohibited** | Document files, criminal-record content, health data, exclusion answers, credentials, signing keys | Never stored anywhere: not in the database, logs, e-mail bodies or backups |
+
+Every table that holds client or operator data carries `tenant_id` from v1 (AD19); with one operator firm it has one value. Row-level security policies on `tenant_id` are enabled in v5, and tests then prove that one tenant's database role cannot read or write another's rows [40].
 
 ---
 
@@ -554,10 +677,12 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | Phase | Trigger (`plan.md` §6) | Builds | Gate before go-live |
 |---|---|---|---|
 | v0 | Now | Spreadsheet + `tenders/` data + manual process | Spreadsheet in an EU-region workspace under a DPA, MFA on, no public sharing links, metadata only (the §8 prohibited list applies to v0 too) |
-| v1 | Step 5 gate | core/catalog, core/rules, core/pricing, engagements, alerts, documents (HTML + `.ics`), audit, shell | ASVS L2 self-review of the chapters in use; `check --deploy`; restore drill; record of processing; DPIA threshold assessment |
-| v2 | Monitoring is sold, or client numbers make manual tracking costly | ingestion + notices view | Rate-limit and attribution review; sandbox in place for attachments |
+| v1 | Step 5 gate | core/catalog, core/rules, core/pricing, core/lifecycle, engagements (with resources), alerts, documents (HTML + `.ics`), audit, shell; packs `taxi_student_transport` and `gr` | ASVS L2 self-review of the chapters in use; `check --deploy`; restore drill; record of processing; DPIA threshold assessment |
+| v1.1 | Sector #2 is chosen (`plan.md` §6 step 7) | A second sector pack and its tender data only | The scalability acceptance test ([`build-plan.md`](build-plan.md) §3) |
+| v2 | Monitoring is sold, or client numbers make manual tracking costly | opportunities, ingestion (ΚΗΜΔΗΣ, Διαύγεια, TED), matching, procrastinate | Rate-limit and attribution review for every source; sandbox in place for attachments; matching precision and recall measured |
 | v3 | Onboarding tender #2 by hand costs more than building extraction | extraction (sandbox, LLM, review queue) | Every chain model passes the gold-set evaluation (`llm-models.md` §7); OpenRouter account settings checked (`llm-models.md` §6); LLM Top 10 review |
 | v4 | Clients ask for self-service | Client portal | Full ASVS L2 on the public surface; external penetration test; login rate limiting; account-recovery design; new DPIA assessment |
+| v5 | A second operator firm, or a client in a second country | Row-level security on `tenant_id`; jurisdiction pack #2 | Cross-tenant access tests fail at the database; data-processing agreements per operator firm; transfer and residency review for the new country |
 
 ---
 
@@ -587,6 +712,12 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | Escort documents at the provisional award (R25 medical certificate, R21 declaration) | Reasoned opinion: the v0 workbook records only status and the certificate's expiry date, no names, the same kind of metadata as a driver's licence expiry; whether that date counts as health data (Art. 9) is not settled. The v1 data model has no escort entity | Lawyer review before v1, together with the Art. 10 item |
 | OpenRouter's DPA wording, its own log retention and its DPF certification | UNVERIFIED | Read OpenRouter's terms, DPA and privacy policy before v3; low risk while only public text is sent |
 | Greek extraction quality of the chain models | UNVERIFIED: no public benchmark covers Greek | Gold-set evaluation (`llm-models.md` §7). The other LLM open items are in `llm-models.md` §8 |
+| TED API v3 rate limits; licence of TED notice data for reuse | UNVERIFIED: no numeric limit found; one Publications Office source says CC BY 4.0, not confirmed for API data | Read ted.europa.eu data-reuse terms and measure limits before M10 ([`build-plan.md`](build-plan.md) §4) |
+| eCertis REST API: endpoints, authentication, and whether Greek evidence documents are mapped | UNVERIFIED: the API specification exists as a PDF that could not be parsed | Read the specification and query Greek criteria before M15 |
+| OCDS 1.2 | UNVERIFIED: 1.1.5 (2020-08-20) is the current release; no dated 1.2 release found | Check standard.open-contracting.org when M9 starts |
+| ESPD-EDM 4.1.0 publication date | UNVERIFIED | Check the ESPD-EDM release notes when M1 adds `espd_criterion` |
+| New ΟΠΣ ΕΣΗΔΗΣ (Προμηθεύς portal redesigned, live 2026-08-19): public interfaces | UNVERIFIED: no public technical specification found | Re-check before M10; nothing in v1 depends on it |
+| Greek article that sets the 100–120 point band for quality-price scoring | UNVERIFIED (practitioner guides cite Law 4412/2016 Art. 86) | Read Art. 86 in the full text [27] before `quality_price_score` is built |
 
 ---
 
@@ -635,3 +766,21 @@ Research done on 2026-09-23. Secondary sources are marked; the claims resting on
 
 29. OpenRouter documentation (fetched 2026-09-23): provider routing https://openrouter.ai/docs/features/provider-routing · model fallbacks https://openrouter.ai/docs/guides/routing/model-fallbacks · structured outputs https://openrouter.ai/docs/features/structured-outputs · reasoning tokens https://openrouter.ai/docs/guides/best-practices/reasoning-tokens · zero data retention https://openrouter.ai/docs/guides/features/zdr · FAQ (fees) https://openrouter.ai/docs/faq. Model evidence, catalog snapshots and the full source list: [`llm-models.md`](llm-models.md) §9.
 30. Διακήρυξη ΔΣΑ Μεταφοράς Μαθητών Μ.Ε. Θεσσαλονίκης, ΑΔΑ ΨΡΘ97ΛΛ-ΕΕΚ (2026-03-06): https://diavgeia.gov.gr/doc/ΨΡΘ97ΛΛ-ΕΕΚ
+
+**Scaling to every sector, procedure and country (research done on 2026-09-24; secondary sources marked)**
+
+31. Plugins in Python (entry points): https://packaging.python.org/guides/creating-and-discovering-plugins/
+32. Modular monolith in Django (secondary): https://makimo.com/blog/modular-monolith-in-django/
+33. OCDS 1.1.5 release reference: https://standard.open-contracting.org/latest/en/schema/reference/ · OCDS for eForms profile (v1.0.0-rc.1): https://standard.open-contracting.org/profiles/eforms/latest/en/
+34. eForms mandatory from 25 Oct 2023: https://docs.ted.europa.eu/eforms-common/FAQ/index.html · eForms SDK releases (1.15.1, 2026-07-20): https://github.com/OP-TED/eForms-SDK/releases · TED API v3: https://docs.ted.europa.eu/api/latest/index.html
+35. EAV and JSONB (secondary): https://www.enterprisedb.com/blog/postgresql-anti-patterns-unnecessary-jsonhstore-dynamic-columns · https://coussej.github.io/2016/01/14/Replacing-EAV-with-JSONB-in-PostgreSQL/
+36. django-fsm renamed viewflow.fsm (README): https://github.com/viewflow/django-fsm · python-statemachine: https://pypi.org/project/python-statemachine/ · durable workflow engines compared (secondary): https://docs.dbos.dev/why-dbos
+37. Directive 2014/24/EU, Art. 67: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32014L0024
+38. Law 4412/2016 Art. 90 (uniform discount, works) and Art. 95 (offers): https://eadhsy.gr/n4412/n4412fulltext.html · Art. 90 title: https://www.opengov.gr/ypoian/?p=6115
+39. ESPD-EDM (4.1.0): https://docs.ted.europa.eu/ESPD-EDM/latest/index.html · criterion UUIDs kept stable for eCertis: https://github.com/OP-TED/ESPD-EDM/issues/312 · eCertis: https://ec.europa.eu/tools/ecertis/
+40. PostgreSQL row-level security: https://www.postgresql.org/docs/current/ddl-rowsecurity.html · django-tenants 3.14.0 (2026-08-05), the schema-per-tenant alternative: https://pypi.org/project/django-tenants/
+41. Greek stemming added to PostgreSQL full-text search in 13.0: https://www.postgresql.org/docs/release/13.0/ · pg_trgm: https://www.postgresql.org/docs/current/pgtrgm.html · pgvector: https://github.com/pgvector/pgvector
+42. procrastinate 3.10.0 (2026-09-23; periodic tasks, Django integration): https://pypi.org/project/procrastinate/
+43. HackSoft Django Styleguide (services and selectors): https://github.com/HackSoftware/Django-Styleguide
+44. CPV: Regulation (EC) No 213/2008 and Regulation (EU) 2022/943 (correction of language versions): https://eur-lex.europa.eu/eli/reg/2008/213/oj/eng · https://eur-lex.europa.eu/eli/reg/2022/943
+45. ΚΗΜΔΗΣ redesign with OCDS as a goal: https://digitalstrategy.gov.gr/project/kimdis · Διαύγεια OpenData API: https://diavgeia.gov.gr/api/help

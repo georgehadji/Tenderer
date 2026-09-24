@@ -1,0 +1,18 @@
+# Manifest of this tender module (schema: tenders/CONTEXT.md). Every value cites its § in the διακήρυξη.
+schema_version = 2
+id = "pkm-meth-student-transport-dsa-2026"
+title = "ΔΣΑ Μεταφοράς Μαθητών Μ.Ε. Θεσσαλονίκης 2026–2029, κατηγορία Β (Ε.Δ.Χ.)"
+sector = "taxi_student_transport"
+jurisdiction = "gr"
+lifecycle = "dps"                    # admission, then one call-off per invitation (§3.1)
+offer_shape = "discount_on_reference"  # integer discount on the published reference price (§4.3.2)
+
+[sources]
+ada = "ΨΡΘ97ΛΛ-ΕΕΚ"
+
+[offer]
+offer_validity_months = 12                 # §4.4.1
+participation_guarantee_rate = "0.002"     # 0,2% of the budget without VAT and option (§4.3.1.2)
+participation_guarantee_extra_days = 30    # valid 30 days after the offer (§4.3.1.2)
+performance_guarantee_rate = "0.04"        # 4% of the contract value without option (§6.2.1)
+performance_guarantee_extra_months = 2     # valid 2 months after the contract ends (§6.2.1)

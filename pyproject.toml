@@ -1,0 +1,72 @@
+[project]
+name = "tenderer"
+version = "0.1.0"
+description = "Tender-participation support for small professionals"
+requires-python = ">=3.13,<3.15"
+dependencies = [
+    "django>=5.2,<5.3",   # newest LTS (docs/architecture.md §4)
+    "psycopg[binary]>=3.2",
+]
+
+[dependency-groups]
+dev = [
+    "hypothesis",
+    "import-linter",
+    "mypy",
+    "pip-audit",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tenderer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+branch = true
+source = ["tenderer"]
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "DTZ", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]   # Greek text is intended
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+"scripts/**" = ["S603", "S607"]
+
+[tool.mypy]
+strict = true
+files = ["src/tenderer/core", "src/tenderer/sectors", "src/tenderer/jurisdictions"]
+mypy_path = "src"
+explicit_package_bases = true
+
+[tool.importlinter]
+root_package = "tenderer"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layers: shell -> packs -> core (docs/architecture.md §5.2)"
+type = "layers"
+layers = [
+    "tenderer.shell",
+    "tenderer.sectors | tenderer.jurisdictions",
+    "tenderer.core",
+]
+
+[[tool.importlinter.contracts]]
+name = "core and packs stay pure: no Django, no HTTP (§5.2 rules 1 and 7)"
+type = "forbidden"
+source_modules = ["tenderer.core", "tenderer.sectors", "tenderer.jurisdictions"]
+forbidden_modules = ["django", "psycopg", "requests", "httpx"]

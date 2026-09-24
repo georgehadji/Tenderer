@@ -2,3 +2,12 @@
 .claude/settings.local.json
 # Raw interview notes and contact keys: personal data, and this repo is public
 discovery/private/
+# Python tooling and build output
+.venv/
+__pycache__/
+.coverage
+.hypothesis/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+staticfiles/

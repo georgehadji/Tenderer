@@ -1,0 +1,43 @@
+"""GR jurisdiction pack: Easter vectors of docs/architecture.md §6.2, holiday files, number words."""
+
+from datetime import date, timedelta
+
+import pytest
+
+from tenderer.jurisdictions.gr import number_in_words, orthodox_easter, public_holidays
+from tenderer.shell.packs import calendar
+
+
+@pytest.mark.parametrize(("year", "easter", "clean_monday", "good_friday", "whit_monday"), [
+    (2026, date(2026, 4, 12), date(2026, 2, 23), date(2026, 4, 10), date(2026, 6, 1)),
+    (2027, date(2027, 5, 2), date(2027, 3, 15), date(2027, 4, 30), date(2027, 6, 21)),
+    (2028, date(2028, 4, 16), date(2028, 2, 28), date(2028, 4, 14), date(2028, 6, 5)),
+])
+def test_easter_vectors(year, easter, clean_monday, good_friday, whit_monday):
+    assert orthodox_easter(year) == easter
+    days = public_holidays(year)
+    assert {clean_monday, good_friday, easter + timedelta(days=1), whit_monday} <= set(days)
+
+
+def test_reference_files_match_the_computation():
+    cal = calendar("gr")
+    for year in range(2026, 2030):
+        assert {d for d in cal.holidays if d.year == year} == set(public_holidays(year))
+
+
+def test_unreviewed_years_stay_ambiguous():
+    assert calendar("gr").reviewed_years == frozenset()  # every file still says reviewed=no
+
+
+@pytest.mark.parametrize(("n", "words"), [
+    (0, "μηδέν"), (1, "ένα"), (10, "δέκα"), (11, "έντεκα"), (12, "δώδεκα"), (13, "δεκατρία"), (14, "δεκατέσσερα"),
+    (16, "δεκαέξι"), (19, "δεκαεννέα"), (20, "είκοσι"), (21, "είκοσι ένα"), (74, "εβδομήντα τέσσερα"),
+    (99, "ενενήντα εννέα"),
+])
+def test_number_words_match_workbook(n, words):
+    assert number_in_words(n) == words
+
+
+def test_number_words_reject_out_of_range():
+    with pytest.raises(ValueError):
+        number_in_words(100)

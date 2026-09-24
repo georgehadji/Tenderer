@@ -10,7 +10,7 @@ Tender-participation support for small professionals (first vertical: taxi → s
 
 ## 2. Keep CONTEXT.md in sync (mandatory, every change)
 
-- Every project folder has a `CONTEXT.md` that describes **every file** in it (other than itself): what it contains and what it does. Tool-state folders that git ignores (e.g. `.claude/claudex/`) are exempt.
+- Every project folder has a `CONTEXT.md` that describes **every file** in it (other than itself): what it contains and what it does. Tool-state folders that git ignores (e.g. `.claude/claudex/`) and package markers (`__init__.py`, `py.typed`) are exempt. `scripts/check_context.py` checks this in CI.
 - Add, delete, rename or move a file, or change what a file does → update that folder's `CONTEXT.md` **in the same commit**.
 - Add, delete or rename a folder → give it a `CONTEXT.md` **and** update the map in the root `CONTEXT.md`.
 - A task is not done while any `CONTEXT.md` disagrees with the tree.
@@ -26,7 +26,7 @@ Tender-participation support for small professionals (first vertical: taxi → s
 - **Single source of truth.** Each fact lives in one file and every other file links to it. Requirements live only in `requirements.csv`, and the strategy lives only in `docs/plan.md`.
 - **Data contract.** The `requirements.csv` schema is defined in [`tenders/CONTEXT.md`](tenders/CONTEXT.md). Change the schema only together with that file and every existing tender.
 - **Sources.** Every claim about a tender cites its `§` in the source document. A claim without a source is a hypothesis and must be labelled as one.
-- **Code.** Do not write any before the gate in `docs/plan.md` §6 step 5. After that, follow [`docs/architecture.md`](docs/architecture.md): the folder layout (§5.4), the dependency rules checked by import-linter (§5.2–5.3), and each module's paradigm, patterns and controls (§6). Each module folder has its own `CONTEXT.md`. Modules depend on data contracts and each other's `api.py`, not on internals. Build only what a real client cycle needs (YAGNI).
+- **Code.** The owner started the build on 2026-09-24, before the gate in `docs/plan.md` §6 step 5; the gate still decides the v1 cut (which milestones after M3 are built, `docs/build-plan.md` §1). Build in the order of [`docs/build-plan.md`](docs/build-plan.md) and follow [`docs/architecture.md`](docs/architecture.md): the folder layout (§5.4), sector and jurisdiction packs for anything sector- or country-specific (§5.5), the dependency rules checked by import-linter (§5.2–5.3), and each module's paradigm, patterns and controls (§6). Each module folder has its own `CONTEXT.md`. Modules depend on data contracts and each other's `api.py`, not on internals. Build only what a real client cycle needs (YAGNI).
 - **Safety and security come first.** A change that touches deadlines, money, eligibility, personal data or external input must keep the principles and controls of `docs/architecture.md` §2, §10 and §11. If it cannot, update that document in the same change and say why.
 
 ## 5. Product invariants (never build against these)
