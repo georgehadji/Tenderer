@@ -552,11 +552,11 @@ The CPV vocabulary in force is still the 2008 version: Regulation (EU) 2022/943 
 
 | Table (module) | Key fields | Class | Constraints |
 |---|---|---|---|
-| client (engagements) | name, afm, phone, email, retention_until | Personal | `afm` unique, check-digit CHECK; validated e-mail and phone |
+| client (engagements) | jurisdiction, name, tax_id (ΑΦΜ in Greece), phone, email, retention_until | Personal | (`tenant_id`, `jurisdiction`, `tax_id`) unique; check digit, phone and e-mail validated on every save through the jurisdiction pack (the check digit is not a database CHECK, because the rule differs per country) |
 | resource | client, kind (from the sector pack), label, attributes (JSONB), schema_version. Taxi kinds: `vehicle` (plate, category, seats, base municipality), `driver` (display name, licence expiry dates), `escort` (display label, certificate expiry only) | Personal (vehicles, and third parties for staff kinds) | `attributes` valid against the pack's JSON Schema; uniqueness keys declared by the schema (e.g. plate per client); minimum fields only |
 | document_record | owner (client or resource), doc_type, issued_on, valid_until, seen_by, seen_at | Personal (metadata) | `valid_until ≥ issued_on` |
 | engagement | client, tender_id, state, admitted_on | Personal | state from the allowed set; transitions only in code |
-| bid | engagement, invitation_ref, route_ids, discount_pct, state, gonogo_snapshot | Personal | `discount_pct` integer 0–100 CHECK |
+| bid | engagement, invitation_ref, state, offer_check (validator result per line: route, discount, price, error), gonogo_snapshot, checklist_snapshot | Personal | state from the allowed set (CHECK); the recorded results feed the DRAFT → CHECKED guard |
 | acknowledgement | engagement, kind, acknowledged_at | Personal | no free text |
 | outbox (alerts) | idempotency_key, channel, recipient_ref, due_at, sent_at, attempts | Internal | `idempotency_key` unique |
 | audit_event (audit) | at, actor, action, object_ref, details | Internal | INSERT-only grant + trigger |

@@ -11,6 +11,18 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: tenderer
+          POSTGRES_USER: tenderer
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U tenderer" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: ci-only-password
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -26,10 +38,12 @@ jobs:
         run: uv run mypy
       - name: Module boundaries (docs/architecture.md §5.3)
         run: uv run lint-imports
-      - name: Tests, with 100% branch coverage on core/rules (build-plan M2)
+      - name: Migrations match the models
+        run: DJANGO_SETTINGS_MODULE=tests.settings uv run python manage.py makemigrations --check --dry-run
+      - name: Tests (PostgreSQL 17), with 100% branch coverage on core/rules and core/lifecycle
         run: |
           uv run pytest --cov --cov-branch --cov-report=term-missing:skip-covered
-          uv run coverage report --include='src/tenderer/core/rules/*' --fail-under=100
+          uv run coverage report --include='src/tenderer/core/rules/*,src/tenderer/core/lifecycle/*' --fail-under=100
       - name: Known vulnerabilities in dependencies
         run: uv export --locked --no-dev --no-emit-project --format requirements-txt > requirements.txt && uv run pip-audit --strict -r requirements.txt
       - name: Django deploy check with production settings

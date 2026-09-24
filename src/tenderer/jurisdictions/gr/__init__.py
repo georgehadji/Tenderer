@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from tenderer.core.catalog.packs import JurisdictionPack
+from tenderer.jurisdictions.gr.ids import VALIDATORS
 
 DOCUMENT_TYPES = frozenset({
     "qualified_signature_certificate", "esidis_registration", "espd_response",
@@ -68,4 +69,5 @@ PACK = JurisdictionPack(
     document_types=DOCUMENT_TYPES,
     public_holidays=public_holidays,
     payment_deduction_rate=PAYMENT_DEDUCTION_RATE,
+    validators=VALIDATORS,
 )

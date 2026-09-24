@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from tenderer.core.catalog.packs import Packs
+from tenderer.core.lifecycle.templates import TEMPLATES
 from tenderer.core.pricing.offer import OFFER_SHAPES
 from tenderer.core.rules.dates import Calendar, load_calendar
 from tenderer.jurisdictions import gr
@@ -13,7 +14,7 @@ REPO = Path(__file__).resolve().parents[3]
 PACKS = Packs(
     sectors={p.id: p for p in (taxi_student_transport.PACK,)},
     jurisdictions={p.id: p for p in (gr.PACK,)},
-    lifecycles=frozenset({"dps"}),  # ponytail: names only until core/lifecycle (M4) supplies the templates
+    lifecycles=frozenset(TEMPLATES),
     offer_shapes=OFFER_SHAPES,
 )
 

@@ -41,3 +41,37 @@ def test_number_words_match_workbook(n, words):
 def test_number_words_reject_out_of_range():
     with pytest.raises(ValueError):
         number_in_words(100)
+
+
+# ---------------- identifiers (synthetic values only: this repository is public) ----------------
+from tenderer.jurisdictions.gr.ids import afm, phone, plate  # noqa: E402
+
+
+def test_afm_check_digit():
+    assert afm(" 123456783 ") == "123456783"  # 1004 mod 11 = 3
+    for bad in ("123456784", "12345678", "000000000", "12345678a"):
+        with pytest.raises(ValueError):
+            afm(bad)
+
+
+@pytest.mark.parametrize(("raw", "want"), [("ΝΒΚ-1234", "ΝΒΚ-1234"), ("nbk 1234", "ΝΒΚ-1234"), ("ΝΒΚ1234", "ΝΒΚ-1234")])
+def test_plate_normalised(raw, want):
+    assert plate(raw) == want
+
+
+@pytest.mark.parametrize("bad", ["ΝΒΓ-1234", "ΝΒ-1234", "ΝΒΚ-12345", "ΝΒΚ-12A4"])
+def test_plate_rejected(bad):
+    with pytest.raises(ValueError):
+        plate(bad)
+
+
+@pytest.mark.parametrize(("raw", "want"), [("6912345678", "+306912345678"), ("+30 231 012 3456", "+302310123456"),
+                                           ("0030 69 1234 5678", "+306912345678")])
+def test_phone_e164(raw, want):
+    assert phone(raw) == want
+
+
+@pytest.mark.parametrize("bad", ["5912345678", "691234567", "+44 20 7946 0000"])
+def test_phone_rejected(bad):
+    with pytest.raises(ValueError):
+        phone(bad)

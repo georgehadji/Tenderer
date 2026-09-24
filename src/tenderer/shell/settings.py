@@ -20,7 +20,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "tenderer.apps.engagements",
 ]
+
+TENDERER_PACKS = "tenderer.shell.packs.PACKS"  # apps reach packs only through this registry (§5.2 rule 7)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

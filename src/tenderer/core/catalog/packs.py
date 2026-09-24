@@ -25,6 +25,8 @@ class JurisdictionPack:
     document_types: frozenset[str]
     public_holidays: Callable[[int], Mapping[date, str]]  # computed; reviewed files in reference/<cc>/ win
     payment_deduction_rate: Decimal  # withheld from every public payment, as a fraction of the price
+    # "tax_id", "plate", "phone": normalise a raw value or raise ValueError (value objects at the boundary)
+    validators: Mapping[str, Callable[[str], str]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

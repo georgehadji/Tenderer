@@ -7,6 +7,7 @@ The application package. Layout and dependency rules: [`docs/architecture.md`](.
 | `core/` | pure core | tender catalog, rules (checklists, deadlines), pricing: `core/CONTEXT.md` |
 | `sectors/` | packs | one package per sector: `sectors/CONTEXT.md` |
 | `jurisdictions/` | packs | one package per country: `jurisdictions/CONTEXT.md` |
+| `apps/` | application modules (Django) | engagements: `apps/CONTEXT.md` |
 | `shell/` | imperative shell | Django project, pack registry: `shell/CONTEXT.md` |
 
-`py.typed` marks the package as typed. Import direction: `shell` → packs → `core`, checked by `lint-imports` (contracts in `pyproject.toml`).
+`py.typed` marks the package as typed. Import direction: `shell` → `apps` → packs → `core`, checked by `lint-imports` (contracts in `pyproject.toml`).

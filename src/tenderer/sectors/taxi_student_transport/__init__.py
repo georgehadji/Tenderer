@@ -45,7 +45,7 @@ RESOURCE_KINDS: dict[str, JsonSchema] = {
         "required": ["display_label"],
         "properties": {
             "display_label": {"type": "string", "minLength": 1, "x-personal": True},
-            "health_certificate_valid_until": _DATE,  # the expiry only, never the content (AD5)
+            "certificate_valid_until": _DATE,  # expiry of the medical certificate only, never its content (AD5)
         },
         "x-schema-version": 1,
     },

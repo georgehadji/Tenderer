@@ -25,18 +25,22 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 │   ├── core/            pure core                            → src/tenderer/core/CONTEXT.md
 │   │   ├── catalog/     tenders as typed data, pack contracts → src/tenderer/core/catalog/CONTEXT.md
 │   │   ├── rules/       checklists, deadlines                → src/tenderer/core/rules/CONTEXT.md
-│   │   └── pricing/     money, offer validator, go/no-go     → src/tenderer/core/pricing/CONTEXT.md
+│   │   ├── pricing/     money, offer validator, go/no-go     → src/tenderer/core/pricing/CONTEXT.md
+│   │   └── lifecycle/   procedure templates as data          → src/tenderer/core/lifecycle/CONTEXT.md
 │   ├── sectors/         sector packs                         → src/tenderer/sectors/CONTEXT.md
 │   │   └── taxi_student_transport/                            → src/tenderer/sectors/taxi_student_transport/CONTEXT.md
 │   ├── jurisdictions/   country packs                        → src/tenderer/jurisdictions/CONTEXT.md
 │   │   └── gr/          Greece                               → src/tenderer/jurisdictions/gr/CONTEXT.md
+│   ├── apps/            Django applications                  → src/tenderer/apps/CONTEXT.md
+│   │   └── engagements/ clients, resources, engagements, bids → src/tenderer/apps/engagements/CONTEXT.md
+│   │       └── migrations/                                    → src/tenderer/apps/engagements/migrations/CONTEXT.md
 │   └── shell/           Django project, pack registry        → src/tenderer/shell/CONTEXT.md
 ├── tests/               one test file per module             → tests/CONTEXT.md
 └── tenders/             one self-contained module per tender → tenders/CONTEXT.md
     └── pkm-meth-student-transport-dsa-2026/                   → tenders/pkm-meth-student-transport-dsa-2026/CONTEXT.md
 ```
 
-**Run the checks locally** (the same gates as CI): `uv sync`, then `uv run pytest`, `uv run ruff check .`, `uv run mypy`, `uv run lint-imports`, `uv run python scripts/check_context.py`.
+**Run the checks locally** (the same gates as CI): `uv sync`, a PostgreSQL for the database tests (`docker compose up -d`, or any local server through the `PG*` variables), then `uv run pytest`, `uv run ruff check .`, `uv run mypy`, `uv run lint-imports`, `uv run python scripts/check_context.py`.
 
 ## Where to find…
 
@@ -59,7 +63,7 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 | Concierge kit (plan step 3): meetings, what we record and never record, templates, record of processing; draft pilot agreement | [`discovery/concierge-phase-a-2026.md`](discovery/concierge-phase-a-2026.md) · [`discovery/pilot-agreement-draft.md`](discovery/pilot-agreement-draft.md) |
 | Concierge kit (plan step 4): invitation cycle, go/no-go meeting, pre-submission check; the go/no-go calculator, offer validator and Phase B document checklist spreadsheet | [`discovery/concierge-phase-b-2026.md`](discovery/concierge-phase-b-2026.md) · [`discovery/concierge-phase-b-workbook.xlsx`](discovery/concierge-phase-b-workbook.xlsx) |
 | Subagent model enforcement (Sonnet 5) | [`.claude/settings.json`](.claude/settings.json) |
-| Code: what is built so far (M0–M3: catalog, rules, pricing, GR and taxi packs, Django shell) | [`src/tenderer/CONTEXT.md`](src/tenderer/CONTEXT.md) and [`docs/build-plan.md`](docs/build-plan.md) §2 |
+| Code: what is built so far (M0–M4: catalog, rules, pricing, lifecycle, engagements, GR and taxi packs, Django shell) | [`src/tenderer/CONTEXT.md`](src/tenderer/CONTEXT.md) and [`docs/build-plan.md`](docs/build-plan.md) §2 |
 | Tender manifest (`tender.toml`) and `requirements.csv` schema v2 | [`tenders/CONTEXT.md`](tenders/CONTEXT.md) |
 | Greek holiday calendars and how to review them | [`reference/gr/CONTEXT.md`](reference/gr/CONTEXT.md) |
 | CI gates | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
@@ -76,7 +80,8 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 | `reference/gr/` | [`reference/gr/CONTEXT.md`](reference/gr/CONTEXT.md) | Greek public holidays per year, with review status |
 | `scripts/` | [`scripts/CONTEXT.md`](scripts/CONTEXT.md) | Repository checks run by CI |
 | `src/tenderer/` | [`src/tenderer/CONTEXT.md`](src/tenderer/CONTEXT.md) | Application package; each subfolder below has its own `CONTEXT.md` |
-| `src/tenderer/core/`, `src/tenderer/core/catalog/`, `src/tenderer/core/rules/`, `src/tenderer/core/pricing/` | one per folder | Pure core modules |
+| `src/tenderer/core/`, `src/tenderer/core/catalog/`, `src/tenderer/core/rules/`, `src/tenderer/core/pricing/`, `src/tenderer/core/lifecycle/` | one per folder | Pure core modules |
+| `src/tenderer/apps/`, `src/tenderer/apps/engagements/`, `src/tenderer/apps/engagements/migrations/` | one per folder | Django applications |
 | `src/tenderer/sectors/`, `src/tenderer/sectors/taxi_student_transport/` | one per folder | Sector packs |
 | `src/tenderer/jurisdictions/`, `src/tenderer/jurisdictions/gr/` | one per folder | Country packs |
 | `src/tenderer/shell/` | [`src/tenderer/shell/CONTEXT.md`](src/tenderer/shell/CONTEXT.md) | Django project and pack registry |
