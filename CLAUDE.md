@@ -15,10 +15,10 @@ Tender-participation support for small professionals (first vertical: taxi → s
 - Add, delete or rename a folder → give it a `CONTEXT.md` **and** update the map in the root `CONTEXT.md`.
 - A task is not done while any `CONTEXT.md` disagrees with the tree.
 
-## 3. Subagents use Sonnet
+## 3. Subagents use Sonnet 5
 
-- Pass `model: "sonnet"` on every Agent/subagent call. Custom agents in `.claude/agents/` must declare `model: sonnet`.
-- Enforced by [`.claude/settings.json`](.claude/settings.json): `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` and `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`, which make every subagent run on Sonnet whatever model a call asks for. Do not remove these settings.
+- Pass `model: "sonnet"` on every Agent/subagent call. Custom agents in `.claude/agents/` must declare `model: claude-sonnet-5`.
+- Enforced by [`.claude/settings.json`](.claude/settings.json): `CLAUDE_CODE_SUBAGENT_MODEL=claude-sonnet-5` and `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`, which make every subagent run on Sonnet 5 (`claude-sonnet-5`) whatever model a call asks for. Do not remove these settings.
 
 ## 4. Modularity and scalability rules
 

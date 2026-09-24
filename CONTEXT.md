@@ -6,7 +6,7 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 
 ```
 /
-├── CLAUDE.md            agent rules (navigation, CONTEXT sync, Sonnet subagents, modularity)
+├── CLAUDE.md            agent rules (navigation, CONTEXT sync, Sonnet 5 subagents, modularity)
 ├── CONTEXT.md           this map
 ├── .gitignore           keeps local tool state and private interview data out of git
 ├── .claude/             Claude Code project settings        → .claude/CONTEXT.md
@@ -35,7 +35,7 @@ Start here. Each folder has its own `CONTEXT.md` that lists its files. Rules for
 | Interview kit (plan step 2): who to interview, channels, consent, questions, how the gate is measured | [`discovery/interviews-taxi-2026.md`](discovery/interviews-taxi-2026.md) |
 | Concierge kit (plan step 3): meetings, what we record and never record, templates, record of processing; draft pilot agreement | [`discovery/concierge-phase-a-2026.md`](discovery/concierge-phase-a-2026.md) · [`discovery/pilot-agreement-draft.md`](discovery/pilot-agreement-draft.md) |
 | Concierge kit (plan step 4): invitation cycle, go/no-go meeting, pre-submission check; the go/no-go calculator, offer validator and Phase B document checklist spreadsheet | [`discovery/concierge-phase-b-2026.md`](discovery/concierge-phase-b-2026.md) · [`discovery/concierge-phase-b-workbook.xlsx`](discovery/concierge-phase-b-workbook.xlsx) |
-| Subagent model enforcement (Sonnet) | [`.claude/settings.json`](.claude/settings.json) |
+| Subagent model enforcement (Sonnet 5) | [`.claude/settings.json`](.claude/settings.json) |
 
 ## Folder index
 
