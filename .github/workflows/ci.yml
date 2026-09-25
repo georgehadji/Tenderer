@@ -51,3 +51,15 @@ jobs:
           DJANGO_ALLOWED_HOSTS: tenderer.example
           DJANGO_DEFAULT_FROM_EMAIL: alerts@tenderer.example
         run: DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')" uv run python manage.py check --deploy --fail-level WARNING
+
+  image:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the production image (base images pinned by digest)
+        run: docker build --build-arg TENDERER_COMMIT="$GITHUB_SHA" -t tenderer:ci .
+      - name: Smoke test against PostgreSQL 17 (migrate, grants, deploy check, jobs, admin, image contents)
+        run: bash deploy/smoke.sh tenderer:ci

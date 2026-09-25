@@ -35,6 +35,7 @@ class DocumentFact:
 @dataclass(frozen=True)
 class Item:
     requirement_id: str
+    text: str  # the requirement as the tender states it, so a snapshot reads on its own
     subject: str
     status: Status
     reason: str
@@ -53,13 +54,13 @@ def evaluate(
     for req in requirements:
         mine = [f for f in facts if f.doc_type == req.doc_type]
         if not mine:
-            items.append(Item(req.id, "", Status.UNKNOWN, "no_record", req.source_section))
+            items.append(Item(req.id, req.text, "", Status.UNKNOWN, "no_record", req.source_section))
         for fact in mine:
             if not fact.applicable:
                 status, reason = Status.NOT_APPLICABLE, "not_applicable"
             else:
                 status, reason = _EVALUATORS[req.validity.kind](req.validity, fact, key_dates)
-            items.append(Item(req.id, fact.subject, status, reason, req.source_section))
+            items.append(Item(req.id, req.text, fact.subject, status, reason, req.source_section))
     return tuple(items)
 
 

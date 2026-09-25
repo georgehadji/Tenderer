@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="el">
+<head><meta charset="utf-8"><title>Πλάνο συμμετοχής</title></head>
+<body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45;color:#1a1a1a;max-width:720px;margin:0 auto;padding:16px">
+<h1 style="font-size:20px">Πλάνο συμμετοχής</h1>
+<p>Διαγωνισμός: {{ tender_title }}<br>Πρόσκληση: {{ invitation }}<br>
+<small>Έκδοση δεδομένων διαγωνισμού: {{ tender_version }}</small></p>
+
+<h2 style="font-size:17px">1. Προθεσμίες</h2>
+{% if deadlines %}<table style="border-collapse:collapse;width:100%">
+<tr><th align="left">Ημερομηνία</th><th align="left">Τι κάνετε</th><th align="left">Πηγή</th></tr>
+{% for d in deadlines %}<tr><td>{{ d.due_on|date:"d/m/Y" }}</td><td>{{ d.step }}</td><td>{{ d.source_section }}</td></tr>
+{% endfor %}</table>{% else %}<p>Δεν υπάρχει ανοιχτή προθεσμία.</p>{% endif %}
+
+<h2 style="font-size:17px">2. Δικαιολογητικά</h2>
+{% if checklist %}<table style="border-collapse:collapse;width:100%">
+<tr><th align="left">Α/Α</th><th align="left">Τι χρειάζεται</th><th align="left">Για</th><th align="left">Κατάσταση</th><th align="left">Πηγή</th></tr>
+{% for i in checklist %}<tr><td>{{ i.requirement_id }}</td><td>{{ i.text }}</td><td>{{ i.subject }}</td><td>{{ i.status_text }}</td><td>§{{ i.source_section }}</td></tr>
+{% endfor %}</table>{% else %}<p>Ο έλεγχος δικαιολογητικών δεν έχει γίνει ακόμη.</p>{% endif %}
+
+<h2 style="font-size:17px">3. Οικονομικά ανά δρομολόγιο</h2>
+<p>Οι αριθμοί δείχνουν τι σας μένει. Την έκπτωση την αποφασίζετε εσείς.</p>
+{% for r in routes %}<h3 style="font-size:15px">Δρομολόγιο {{ r.code }}</h3>
+<table style="border-collapse:collapse;width:100%">
+<tr><td>Τιμή αναφοράς ανά ημέρα</td><td align="right">{{ r.reference }}</td></tr>
+{% for name, amount in r.per_day %}<tr><td>{{ name }} ανά ημέρα</td><td align="right">{{ amount }}</td></tr>
+{% endfor %}{% for name, share in r.price_share %}<tr><td>{{ name }} (επί της τιμής)</td><td align="right">{{ share }}</td></tr>
+{% endfor %}<tr><td><b>Σας μένουν ανά ημέρα χωρίς έκπτωση</b></td><td align="right"><b>{{ r.net_at_0 }}</b></td></tr>
+<tr><td><b>Μεγαλύτερη έκπτωση χωρίς ζημιά</b></td><td align="right"><b>{% if r.break_even is None %}καμία{% else %}{{ r.break_even }}%{% endif %}</b></td></tr>
+</table>
+{% if r.warnings %}<ul>{% for w in r.warnings %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+{% empty %}<p>Δεν έχει γίνει ακόμη υπολογισμός.</p>{% endfor %}
+
+{% if declarations %}<h2 style="font-size:17px">4. Σχέδια υπεύθυνων δηλώσεων</h2>
+<p>Το κείμενο το επικολλάτε εσείς στο gov.gr, το ελέγχετε και το υπογράφετε εκεί.</p>
+{% for d in declarations %}<h3 style="font-size:15px">{{ d.id }}: {{ d.text }} (§{{ d.source_section }})</h3>
+<p style="color:#b00020;font-weight:bold">{{ watermark }}</p>
+<pre style="white-space:pre-wrap;font-family:inherit;border:2px dashed #b00020;padding:12px">{{ d.body }}</pre>
+<p style="color:#b00020;font-weight:bold">{{ watermark }}</p>
+{% endfor %}{% endif %}
+
+<hr>
+<p><b>{{ never_ask }}</b></p>
+</body>
+</html>

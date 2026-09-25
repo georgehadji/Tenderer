@@ -4,9 +4,14 @@ version = "0.1.0"
 description = "Tender-participation support for small professionals"
 requires-python = ">=3.13,<3.15"
 dependencies = [
+    "defusedxml>=0.7.1",
     "django>=5.2,<5.3",   # newest LTS (docs/architecture.md §4)
+    "django-otp>=1.6",
+    "gunicorn>=23",
     "jsonschema>=4.26.0",
+    "openpyxl>=3.1.5",
     "psycopg[binary]>=3.2",
+    "whitenoise>=6.9",
 ]
 
 [dependency-groups]
@@ -34,6 +39,13 @@ addopts = "--strict-markers"
 pythonpath = ["."]
 DJANGO_SETTINGS_MODULE = "tests.settings"
 django_find_project = false
+filterwarnings = ["ignore:No directory at:UserWarning"]  # whitenoise: tests never run collectstatic
+
+[tool.mutmut]  # mutation testing of the money and deadline code (docs/architecture.md §13, H2): scripts/mutation.sh
+paths_to_mutate = ["src/tenderer/"]
+do_not_mutate = ["*/apps/*", "*/shell/*", "*/sectors/*", "*/jurisdictions/*", "*/core/catalog/*", "*/core/lifecycle/*"]
+tests_dir = ["tests/test_pricing.py", "tests/test_rules.py", "tests/test_taxi_costs.py"]  # pure: no database
+also_copy = ["tests/", "tenders/", "reference/", "manage.py"]
 
 [tool.coverage.run]
 branch = true
@@ -49,7 +61,7 @@ select = ["E", "F", "W", "I", "B", "UP", "S", "DTZ", "RUF"]
 ignore = ["RUF001", "RUF002", "RUF003"]   # Greek text is intended
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]
+"tests/**" = ["S101", "S105", "S106"]  # asserts; synthetic passwords of test users
 "src/tenderer/apps/**" = ["RUF012"]  # Django Meta and admin idiom: lists as class attributes
 "scripts/**" = ["S603", "S607"]
 

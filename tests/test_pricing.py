@@ -131,3 +131,36 @@ def test_offer_price_is_cents_and_never_above_reference(ref, d):
     p = offer_price(Money(ref), d)
     assert p.has_cents_only()
     assert p <= Money(ref)
+
+
+# ---------------- cases found by mutation testing (scripts/mutation.sh, 2026-09-25) ----------------
+def _line(code, discount, priority):
+    price = offer_price(ROUTES[code].reference, discount) if code in ROUTES else None
+    return OfferLine(code, discount, price, price, priority)
+
+
+def test_duplicate_first_priority_and_line_identity():
+    routes = {**ROUTES, "26-ΠΠ-Τ1": Route("26-ΠΠ-Τ1", eur("77.55"), eur("40713.75"), 525, client_said_yes=True)}
+    lines = [OfferLine(c, 3, offer_price(routes[c].reference, 3), offer_price(routes[c].reference, 3), 1)
+             for c in ("G26-0703-Τ2", "26-ΠΠ-Τ1")]
+    checks = validate_offer(lines, routes)
+    assert [c.error for c in checks] == [LineError.PRIORITY_DUPLICATE] * 2
+    assert all(c.line is line for c, line in zip(checks, lines, strict=True))
+
+
+def test_same_discount_across_a_group_is_clean():
+    group = {c: Route(c, eur("50.00"), eur("26250.00"), 525, group="Ο1", client_said_yes=True) for c in ("A", "B")}
+    lines = [OfferLine(c, 5, eur("47.50"), eur("47.50"), p) for p, c in enumerate(("A", "B"), start=1)]
+    assert [c.error for c in validate_offer(lines, group)] == [None, None]
+
+
+def test_guarantee_without_its_kind_is_missing_data():
+    assert check_participation_guarantee(eur("53.74"), eur("60.00"), dt.date(2027, 10, 1), None,
+                                         dt.date(2027, 9, 19)) is GuaranteeCheck.MISSING_DATA
+
+
+@pytest.mark.parametrize(("value", "message"), [(0.1, "floats and booleans"), (True, "floats and booleans"),
+                                                (object(), "is not a number")])
+def test_to_decimal_refuses(value, message):
+    with pytest.raises(TypeError, match=message):
+        to_decimal(value)

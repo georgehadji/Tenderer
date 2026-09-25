@@ -19,6 +19,7 @@ from django.utils import timezone
 
 from tenderer.apps.alerts import ics
 from tenderer.apps.alerts.models import Deadline, Outbox, UpcomingDeadline
+from tenderer.apps.audit import api as audit
 
 log = logging.getLogger(__name__)
 
@@ -59,12 +60,14 @@ def add_deadline(deadline: Deadline, now: datetime | None = None) -> Deadline:
     for kind, due_at in rows:
         Outbox.objects.create(tenant_id=deadline.tenant_id, idempotency_key=f"deadline-{deadline.pk}-{kind}",
                               deadline=deadline, kind=kind, due_at=due_at)
+    audit.record("deadline.added", deadline, {"engagement": deadline.engagement_id, "reminders": len(rows)})
     return deadline
 
 
 def acknowledge(deadline: Deadline, now: datetime | None = None) -> Deadline:
     deadline.acknowledged_at = deadline.acknowledged_at or now or timezone.now()
     deadline.save(update_fields=["acknowledged_at"])
+    audit.record("deadline.acknowledged", deadline)
     return deadline
 
 
@@ -72,6 +75,7 @@ def close(deadline: Deadline, now: datetime | None = None) -> Deadline:
     """Done or withdrawn: reminders not yet sent are no longer sent."""
     deadline.closed_at = deadline.closed_at or now or timezone.now()
     deadline.save(update_fields=["closed_at"])
+    audit.record("deadline.closed", deadline)
     return deadline
 
 
@@ -96,6 +100,8 @@ def send_due(now: datetime | None = None) -> tuple[int, int]:
                 row.sent_at, row.last_error = now, ""
                 sent += 1
             row.save(update_fields=["attempts", "sent_at", "last_error"])
+            audit.record("notification.sent" if row.sent_at else "notification.failed", row,
+                         {"kind": row.kind, "attempt": row.attempts, "error": row.last_error})
     return sent, failed
 
 
@@ -138,6 +144,10 @@ def signal(due_on: date, today: date, acknowledged: bool, failing: bool) -> Sign
     if failing or left < 0 or (not acknowledged and left <= PHONE_AT):
         return Signal.RED
     return Signal.AMBER if left <= max(REMINDER_DAYS.values()) else Signal.GREEN
+
+
+def open_deadlines(engagement_id: int) -> QuerySet[Deadline]:
+    return Deadline.objects.filter(engagement_id=engagement_id, closed_at__isnull=True)
 
 
 def upcoming(today: date) -> QuerySet[UpcomingDeadline]:

@@ -4,17 +4,37 @@ State never changes by editing a field: every change goes through `fire_*`, whic
 Recording a new offer check on a CHECKED bid sends it back to DRAFT, so a changed offer is checked again.
 """
 
+import functools
+import re
 from collections.abc import Iterable
 
+from django.conf import settings
 from django.db import transaction
 
-from tenderer.apps.engagements.models import Bid, Client, Engagement
-from tenderer.core.catalog.tender import Tender
+from tenderer.apps.audit import api as audit
+from tenderer.apps.engagements.models import Bid, Client, Engagement, packs
+from tenderer.core.catalog.tender import Tender, load_tender
 from tenderer.core.lifecycle.machine import GuardContext, Moved, Refused, fire
 from tenderer.core.lifecycle.templates import TEMPLATES
 from tenderer.core.pricing.gonogo import GoNoGo
 from tenderer.core.pricing.offer import LineCheck
 from tenderer.core.rules.checklist import Item, Status
+
+_TENDER_ID = re.compile(r"[a-z0-9-]+")
+
+
+def tender_ids() -> list[str]:
+    """Tender modules deployed with this release (`tenders/<id>/tender.toml`)."""
+    root = settings.TENDERER_TENDERS_DIR
+    return sorted(p.name for p in root.iterdir() if _TENDER_ID.fullmatch(p.name) and (p / "tender.toml").is_file())
+
+
+@functools.cache
+def load(tender_id: str) -> Tender:
+    """The tender as this release ships it; files change only with a deploy, so one load per process."""
+    if tender_id not in tender_ids():
+        raise KeyError(f"no tender module {tender_id!r}")
+    return load_tender(settings.TENDERER_TENDERS_DIR / tender_id, packs(), settings.TENDERER_COMMIT)
 
 
 class TransitionRefused(Exception):
@@ -26,10 +46,12 @@ class TransitionRefused(Exception):
 @transaction.atomic
 def open_engagement(client: Client, tender: Tender) -> Engagement:
     template = TEMPLATES[tender.lifecycle]
-    return Engagement.objects.create(
+    engagement = Engagement.objects.create(
         tenant_id=client.tenant_id, client=client, tender_id=tender.id, tender_version=tender.version,
-        tender_title=tender.title, lifecycle=template.id, state=template.engagement.initial,
+        tender_title=tender.title, sector=tender.sector, lifecycle=template.id, state=template.engagement.initial,
     )
+    audit.record("engagement.opened", engagement, {"tender_id": tender.id, "tender_version": tender.version})
+    return engagement
 
 
 @transaction.atomic
@@ -38,15 +60,18 @@ def fire_engagement(engagement: Engagement, event: str) -> Engagement:
     result = fire(TEMPLATES[engagement.lifecycle].engagement, engagement.state, event)
     if isinstance(result, Refused):
         raise TransitionRefused(result)
+    audit.record("engagement.transition", engagement, {"event": event, "from": engagement.state, "to": result.target})
     engagement.state = result.target
     engagement.save(update_fields=["state"])
-    return engagement  # ponytail: audit event written here from M7
+    return engagement
 
 
 @transaction.atomic
 def open_bid(engagement: Engagement, invitation_ref: str) -> Bid:
-    return Bid.objects.create(tenant_id=engagement.tenant_id, engagement=engagement, invitation_ref=invitation_ref,
-                              state=TEMPLATES[engagement.lifecycle].bid.initial)
+    bid = Bid.objects.create(tenant_id=engagement.tenant_id, engagement=engagement, invitation_ref=invitation_ref,
+                             state=TEMPLATES[engagement.lifecycle].bid.initial)
+    audit.record("bid.opened", bid, {"engagement": engagement.pk})
+    return bid
 
 
 @transaction.atomic
@@ -55,6 +80,7 @@ def fire_bid(bid: Bid, event: str) -> Bid:
     result = fire(TEMPLATES[bid.engagement.lifecycle].bid, bid.state, event, guard_context(bid))
     if isinstance(result, Refused):
         raise TransitionRefused(result)
+    audit.record("bid.transition", bid, {"event": event, "from": bid.state, "to": result.target})
     bid.state = result.target
     bid.save(update_fields=["state"])
     return bid
@@ -98,16 +124,19 @@ def record_gonogo(bid: Bid, route_code: str, result: GoNoGo, warnings: Iterable[
 
 @transaction.atomic
 def record_checklist(bid: Bid, items: Iterable[Item]) -> Bid:
-    bid.checklist_snapshot = [{"requirement_id": i.requirement_id, "subject": i.subject, "status": i.status.value,
-                               "reason": i.reason, "source_section": i.source_section} for i in items]
+    bid.checklist_snapshot = [{"requirement_id": i.requirement_id, "text": i.text, "subject": i.subject,
+                               "status": i.status.value, "reason": i.reason, "source_section": i.source_section}
+                              for i in items]
     return _save_and_reopen(bid, "checklist_snapshot")
 
 
 def _save_and_reopen(bid: Bid, field: str) -> Bid:
     bid.save(update_fields=[field])
+    audit.record("bid.recorded", bid, {"field": field})
     if bid.state == "CHECKED":
         result = fire(TEMPLATES[bid.engagement.lifecycle].bid, bid.state, "reopen")
         if isinstance(result, Moved):
+            audit.record("bid.transition", bid, {"event": "reopen", "from": bid.state, "to": result.target})
             bid.state = result.target
             bid.save(update_fields=["state"])
     return bid

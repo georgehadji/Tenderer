@@ -1,0 +1,21 @@
+# Weekly mutation testing of core/pricing and core/rules (docs/architecture.md §13, H2). Slow, so not on every push.
+name: mutation
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      # Threshold 970: the score was 978 on 2026-09-25 and the survivors left are equivalent mutants.
+      - name: mutmut in a throwaway container; fails below the recorded threshold
+        run: MIN_SCORE=970 bash scripts/mutation.sh

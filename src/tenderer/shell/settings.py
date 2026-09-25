@@ -22,16 +22,29 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "tenderer.apps.engagements",
     "tenderer.apps.alerts",
+    "tenderer.apps.documents",
+    "tenderer.apps.privacy",
+    "tenderer.apps.v0import",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",  # sealed break-glass codes (§10.2)
+    "tenderer.apps.audit",  # last: its post_migrate hook sets the roles from every other app's permissions
 ]
 
 TENDERER_PACKS = "tenderer.shell.packs.PACKS"  # apps reach packs only through this registry (§5.2 rule 7)
+TENDERER_TENDERS_DIR = BASE_DIR / "tenders"  # tender modules; documents reads their declaration drafts
+TENDERER_COMMIT = os.environ.get("TENDERER_COMMIT", "uncommitted")  # part of Tender.version (S4); set at build
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "tenderer.shell.middleware.SecurityHeadersMiddleware",  # CSP, Permissions-Policy (§10.3)
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # admin static files from the one container (§9)
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
+    "tenderer.apps.audit.middleware.CorrelationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -70,6 +83,10 @@ USE_TZ = True  # stored in UTC, shown in Europe/Athens (§6.2)
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
 # Transport and cookies (ASVS L2, §10). The app runs behind a TLS-terminating proxy.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -93,5 +110,18 @@ EMAIL_TIMEOUT = 30
 DEFAULT_FROM_EMAIL = os.environ["DJANGO_DEFAULT_FROM_EMAIL"]
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
+# Retention (§10.8): months after the last engagement ends; set with the lawyer. purge_expired refuses without it.
+_retention = os.environ.get("TENDERER_RETENTION_MONTHS")
+TENDERER_RETENTION_MONTHS = int(_retention) if _retention else None
+
 # Dead man's switch (AD11): the external monitor's ping URL; `manage.py heartbeat` refuses to run without it.
 ALERTS_HEARTBEAT_URL = os.environ.get("ALERTS_HEARTBEAT_URL", "")
+
+# Logs to stdout for the platform, through a filter that removes personal data (§10.3).
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"redact": {"()": "tenderer.shell.logs.RedactPersonalData"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "filters": ["redact"]}},
+    "root": {"handlers": ["console"], "level": "INFO"},
+}

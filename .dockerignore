@@ -1,0 +1,10 @@
+# Only what the image needs: src, manage.py, the lockfile, tenders/ and reference/. Never discovery/ (private notes).
+*
+!pyproject.toml
+!uv.lock
+!.python-version
+!manage.py
+!src/
+!tenders/
+!reference/
+**/__pycache__

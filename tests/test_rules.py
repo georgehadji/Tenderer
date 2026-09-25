@@ -161,7 +161,7 @@ def test_rule_without_anchor_is_unknown():
 
 
 def test_deadline_needs_a_positive_amount():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"^a deadline needs a positive amount$"):
         deadline(date(2026, 1, 1), DeadlineRule(0, Unit.DAYS, "x"), REVIEWED_2026)
 
 
@@ -172,7 +172,7 @@ def test_calendar_file_reviewed_and_mixed_years(tmp_path):
     assert load_calendar([ok]).reviewed_years == frozenset({2026})
     bad = tmp_path / "holidays-2027.csv"
     bad.write_text("date,name,reviewed\n2027-01-01,a,yes\n2028-01-01,b,yes\n", encoding="utf-8")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="one year"):
         load_calendar([bad])
 
 
@@ -189,3 +189,66 @@ def test_explicit_reasons(tender, rid, fact, key_dates, reason):
     req = tender.requirement(rid)
     [item] = evaluate([req], [DocumentFact(req.doc_type, **fact)], key_dates)
     assert item.reason == reason
+
+
+# ---------------- cases found by mutation testing (scripts/mutation.sh, 2026-09-25) ----------------
+NO_HOLIDAYS = Calendar(frozenset(), frozenset({2026}))
+
+
+def test_working_days_remind_by_counts_the_event_day_not_weekends():
+    # Fri 2 Oct 2026 + 2 working days: legal Tue 6; counting the event day gives Mon 5, never the weekend
+    d = deadline(date(2026, 10, 2), DeadlineRule(2, Unit.WORKING_DAYS, "x"), NO_HOLIDAYS)
+    assert (d.remind_by, d.legal_latest, d.note) == (date(2026, 10, 5), date(2026, 10, 6), "")
+
+
+def test_months_deadline_and_roll_forward_by_one_day():
+    d = deadline(date(2026, 1, 31), DeadlineRule(1, Unit.MONTHS, "x"), NO_HOLIDAYS)  # EDATE: Sat 28 Feb
+    assert (d.remind_by, d.legal_latest) == (date(2026, 2, 27), date(2026, 3, 2))
+    d = deadline(date(2026, 10, 3), DeadlineRule(1, Unit.DAYS, "x"), NO_HOLIDAYS)  # ends Sun 4 Oct
+    assert d.legal_latest == date(2026, 10, 5)
+
+
+def test_note_names_every_unreviewed_year():
+    d = deadline(date(2027, 12, 20), DeadlineRule(30, Unit.DAYS, "x"), NO_HOLIDAYS)
+    assert d.note == "no reviewed holiday calendar for 2027, 2028"
+
+
+def test_calendar_files_add_up(tmp_path):
+    from tenderer.core.rules.dates import load_calendar
+    a, b = tmp_path / "holidays-2026.csv", tmp_path / "holidays-2027.csv"
+    a.write_text("date,name,reviewed\n2026-01-06,Θεοφάνεια,yes\n", encoding="utf-8")
+    b.write_text("date,name,reviewed\n2027-01-06,Θεοφάνεια,yes\n", encoding="utf-8")
+    cal = load_calendar([a, b])
+    assert cal.reviewed_years == frozenset({2026, 2027})
+    assert not cal.is_working_day(date(2026, 1, 6)) and cal.is_working_day(date(2026, 1, 7))
+
+
+@pytest.mark.parametrize(("rid", "fact", "key_dates", "reason"), [
+    ("R1", {"valid_until": OFFER_DEADLINE}, AT_OFFER, "in_force"),
+    ("R1", {"valid_until": date(2026, 8, 18)}, AT_OFFER, "expired"),
+    ("R12", {"issued_on": date(2026, 9, 1)}, AT_AWARD, "fresh"),
+    ("R12", {"issued_on": AWARD_DOCS}, AT_AWARD, "fresh"),  # issued on the submission day is not "after"
+    ("R12", {"issued_on": date(2026, 7, 1)}, AT_AWARD, "too_old"),
+    ("R12", {}, AT_AWARD, "missing_date:issued_on"),
+    ("R12", {"issued_on": date(2026, 10, 21)}, AT_AWARD, "issued_after_submission"),
+    ("R9", {"issued_on": INVITATION}, AT_OFFER, "signed_too_early"),
+    ("R9", {"issued_on": date(2026, 8, 20)}, AT_OFFER, "signed_after_submission"),
+    ("R9", {"issued_on": OFFER_DEADLINE}, AT_OFFER, "signed_in_window"),
+    ("R22", {"valid_until": date(2029, 8, 30)}, AT_AWARD, "long_enough"),
+    ("R22", {"valid_until": date(2029, 8, 29)}, AT_AWARD, "expires_too_early"),
+    ("R4", {"manual_status": Status.SATISFIED}, AT_AWARD, "operator_checked"),
+    ("R4", {}, AT_AWARD, "awaiting_operator"),
+    ("R4", {"applicable": False}, AT_AWARD, "not_applicable"),
+])
+def test_every_reason_code(tender, rid, fact, key_dates, reason):
+    req = tender.requirement(rid)
+    [item] = evaluate([req], [DocumentFact(req.doc_type, subject="όχημα 1", **fact)], key_dates)
+    assert (item.requirement_id, item.text, item.subject, item.reason, item.source_section) == (
+        rid, req.text, "όχημα 1", reason, req.source_section)
+
+
+def test_item_without_a_record_names_its_requirement(tender):
+    req = tender.requirement("R13")
+    [item] = evaluate([req], [], AT_AWARD)
+    assert (item.requirement_id, item.text, item.subject, item.status, item.reason, item.source_section) == (
+        "R13", req.text, "", Status.UNKNOWN, "no_record", req.source_section)

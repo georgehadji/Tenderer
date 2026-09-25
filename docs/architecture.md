@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Accepted for v1. M0–M3 built on 2026-09-24 ([`build-plan.md`](build-plan.md) §2); the rest is proposed. |
+| Status | Accepted for v1. v1 (M0–M8) built on 2026-09-24 and 2026-09-25 ([`build-plan.md`](build-plan.md) §2.1); what only go-live can close is listed there. v1.1 onwards is proposed. |
 | Date | 2026-09-23; extended 2026-09-24 for every sector, procedure type and country (AD13–AD21, §5.5, §6.12–§6.16) |
 | Applies from | v1. The owner started the build on 2026-09-24, before the gate of `docs/plan.md` §6 step 5, which still decides the v1 cut. |
 | Owns | Architecture style, module boundaries, the paradigm and patterns of each module, safety and security controls, stack, deployment, verification. |
@@ -348,7 +348,7 @@ Privacy by design (AD5):
 | Engagement and bid state, offer numbers | Credentials, signatures, signing keys |
 
 - Retention: personal data is purged N months after the engagement closes (N set in the retention schedule, §10.8); the `purge_expired` job enforces it.
-- Data-subject requests: export and erasure as admin actions, both audited.
+- Data-subject requests: export and erasure as admin actions, both audited (`apps/privacy`, M7). Erasure is refused while an engagement is still open. `purge_expired` needs N and refuses to run without it.
 
 ### 6.5 `apps/alerts`: reminders that must not fail silently
 
@@ -371,7 +371,7 @@ Privacy by design (AD5):
 | Patterns | Template (Django templates with auto-escaping); snapshot (golden) tests; every draft is watermarked "ΠΡΟΣΧΕΔΙΟ – ελέγξτε πριν υπογράψετε" |
 | Safety | Each item shows its tender `§` and the tender-data version (S4) |
 | Security | Templates are code, never user input (prevents template injection); every value is escaped. Declarations are generated blank for the sensitive parts: the client fills and signs them in gov.gr, so the content never passes through our systems |
-| Build | v1 as HTML e-mail + `.ics`; PDF only when a client asks for it |
+| Build | v1 as HTML e-mail + `.ics` (M6, `apps/documents`); PDF only when a client asks for it. Draft declaration texts are tender data: `tenders/<id>/declarations/<requirement>.txt`, reviewed like `requirements.csv` |
 
 ### 6.7 `apps/audit`: append-only record
 
@@ -381,7 +381,7 @@ Privacy by design (AD5):
 | Paradigm | Append-only event log |
 | Patterns | Append-only table enforced by the database: the app role has `INSERT` and `SELECT` only, and a `BEFORE UPDATE OR DELETE` trigger raises as a second layer [21]; correlation id per request and job |
 | Security | Event details hold internal ids, not personal data; retention per schedule |
-| Build | v1 |
+| Build | v1, built in M7: `apps/audit` (trigger in migration 0002, grants in `deploy/roles.sql`, both tested); every other module writes through `audit.api.record`; admin screens with client data derive from `AuditedAdmin` |
 
 ### 6.8 `apps/ingestion` + `adapters/kimdis_api`: public procurement data
 
@@ -555,7 +555,7 @@ The CPV vocabulary in force is still the 2008 version: Regulation (EU) 2022/943 
 | client (engagements) | jurisdiction, name, tax_id (ΑΦΜ in Greece), phone, email, retention_until | Personal | (`tenant_id`, `jurisdiction`, `tax_id`) unique; check digit, phone and e-mail validated on every save through the jurisdiction pack (the check digit is not a database CHECK, because the rule differs per country) |
 | resource | client, kind (from the sector pack), label, attributes (JSONB), schema_version. Taxi kinds: `vehicle` (plate, category, seats, base municipality), `driver` (display name, licence expiry dates), `escort` (display label, certificate expiry only) | Personal (vehicles, and third parties for staff kinds) | `attributes` valid against the pack's JSON Schema; uniqueness keys declared by the schema (e.g. plate per client); minimum fields only |
 | document_record | owner (client or resource), doc_type, issued_on, valid_until, seen_by, seen_at | Personal (metadata) | `valid_until ≥ issued_on` |
-| engagement | client, tender_id, state, admitted_on | Personal | state from the allowed set; transitions only in code |
+| engagement | client, tender_id, tender_version, tender_title, sector, state, admitted_on | Personal | state from the allowed set; transitions only in code |
 | bid | engagement, invitation_ref, state, offer_check (validator result per line: route, discount, price, error), gonogo_snapshot, checklist_snapshot | Personal | state from the allowed set (CHECK); the recorded results feed the DRAFT → CHECKED guard |
 | acknowledgement | engagement, kind, acknowledged_at | Personal | no free text |
 | deadline (alerts) | engagement, step, due_on (the conservative `remind_by`), legal_latest, ambiguous, source_section, acknowledged_at, closed_at | Personal | no personal data in `step`; a saved deadline is not edited (close it and add a new one) |
@@ -578,7 +578,7 @@ Every table that holds client or operator data carries `tenant_id` from v1 (AD19
 
 ## 9. Deployment (v1)
 
-- One container image (Django app and job entrypoints); managed PostgreSQL; a transactional e-mail provider; object storage for public attachments from v2. **All in EU regions, each under a data-processing agreement.**
+- One container image ([`Dockerfile`](../Dockerfile): gunicorn for the web, `manage.py` commands for the jobs, non-root, base images pinned by digest; smoke-tested in CI by [`deploy/smoke.sh`](../deploy/smoke.sh)); managed PostgreSQL; a transactional e-mail provider; object storage for public attachments from v2. **All in EU regions, each under a data-processing agreement.**
 - The LLM is the one exception to EU hosting (v3): requests go through OpenRouter to zero-data-retention endpoints, EU region first, and carry public tender text only (§6.9, §10.8). The OpenRouter account allows only the chain's models and providers, and each key has a credit limit (`llm-models.md` §6).
 - Operators reach the admin only through an identity-aware proxy or VPN with MFA [20]; the app also requires its own login with a second factor (defence in depth, C4).
 - **No public endpoints in v1.** Calendar files travel as attachments, so no feed or webhook is exposed.
@@ -606,7 +606,7 @@ Every table that holds client or operator data carries `tenant_id` from v1 (AD19
 ### 10.2 Identity and access
 
 - Roles: `operator` (client work), `reviewer` (approves tender data and extractions), `admin` (users, retention, erasure). With one person the roles share one account, but the model is ready for four-eyes review when a second person joins.
-- A second factor is mandatory (WebAuthn/passkeys preferred, TOTP as fallback) [20]; no shared accounts; one sealed break-glass account.
+- A second factor is mandatory (WebAuthn/passkeys preferred, TOTP as fallback) [20]; no shared accounts; one sealed break-glass account. v1: WebAuthn at the identity-aware proxy, and inside the app TOTP through `django-otp` (`OTPAdminSite`), with static codes for the break-glass account. `django-otp-webauthn` (in the sources) would add WebAuthn inside the app; it waits until the proxy is chosen.
 - Database roles: `migrator` owns the tables and runs DDL; `app` has only the DML it needs; `app` can only insert into `audit_event`; nobody uses the superuser day to day [21].
 
 ### 10.3 Data protection
@@ -691,12 +691,12 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 
 | Target | Technique | Gate |
 |---|---|---|
-| core/rules, core/pricing | Unit tests; property-based tests with Hypothesis [10]; golden tests built from the tender's own rules and examples | 100% branch coverage on these packages; a mutation-score threshold (mutmut [10]) set after the first run |
+| core/rules, core/pricing | Unit tests; property-based tests with Hypothesis [10]; golden tests built from the tender's own rules and examples | 100% branch coverage on these packages; a mutation-score threshold (mutmut [10]): baseline 887/1000 on 2026-09-25, 978 after the tests it prompted; the weekly job fails below 970 (`scripts/mutation.sh`) |
 | Engagement and bid state machines | Table-driven tests of every transition, including illegal ones | Every transition covered |
 | Adapters | Contract tests against recorded, anonymised fixtures; a live smoke test behind a flag | Fixtures refreshed when the API changes |
 | extraction | Evaluation against the gold set (the current tender's `requirements.csv` plus a second tender), 3 runs per model, production settings (`llm-models.md` §7) | 100% recall in every run for each chain model; precision threshold set by the owner before v3 is enabled |
 | Security | `check --deploy`, ruff security rules, `pip-audit`, secret scanning, import-linter | CI must pass |
-| Operations | Monthly restore drill; alert drill | Results recorded in the audit log |
+| Operations | Monthly restore drill ([`deploy/restore_drill.sh`](../deploy/restore_drill.sh)); alert drill | Results recorded in the audit log |
 
 ---
 

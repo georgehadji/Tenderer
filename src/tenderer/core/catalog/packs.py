@@ -8,6 +8,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
+from typing import Any
 
 JsonSchema = Mapping[str, object]
 
@@ -17,6 +18,10 @@ class SectorPack:
     id: str
     resource_kinds: Mapping[str, JsonSchema]  # kind -> JSON Schema of its attributes (AD15)
     document_types: frozenset[str]
+    labels: Mapping[str, str] = field(default_factory=dict)  # client-facing text of cost lines and warnings
+    # Go/no-go of one route from plain values (numbers as strings, dates, booleans):
+    # (route, client_costs, contract, offer_terms, deduction_rate) -> (GoNoGo | Missing, warning codes)
+    gonogo: Callable[..., Any] | None = None
 
 
 @dataclass(frozen=True)

@@ -1,6 +1,7 @@
 """Taxi (Ε.Δ.Χ.) student transport: resource kinds, document types, go/no-go cost model (§6.12)."""
 
 from tenderer.core.catalog.packs import JsonSchema, SectorPack
+from tenderer.sectors.taxi_student_transport import costs
 
 DOCUMENT_TYPES = frozenset({
     "vehicle_circulation_licence", "vehicle_insurance_passengers", "vehicle_roadworthiness_test",
@@ -51,4 +52,21 @@ RESOURCE_KINDS: dict[str, JsonSchema] = {
     },
 }
 
-PACK = SectorPack(id="taxi_student_transport", resource_kinds=RESOURCE_KINDS, document_types=DOCUMENT_TYPES)
+# What the client reads for each cost line and warning code of `costs.py`.
+LABELS = {
+    "fuel": "Καύσιμο",
+    "wear": "Φθορά οχήματος",
+    "escort": "Συνοδός",
+    "insurance": "Επιπλέον ασφάλιστρο",
+    "opportunity": "Κόστος του χρόνου σας",
+    "guarantee_bank_costs": "Προμήθειες και τόκος τράπεζας για την εγγύηση συμμετοχής",
+    "deductions": "Κρατήσεις επί της πληρωμής",
+    "performance_guarantee_carry": "Κόστος εγγύησης καλής εκτέλεσης",
+    "fuel_no_adjustment": "Η τιμή δεν αναπροσαρμόζεται αν ακριβύνει το καύσιμο (§6.6.4).",
+    "cancellation_no_compensation": "Αν ακυρωθεί δρομολόγιο, δεν δίνεται αποζημίωση (§7.6.1).",
+    "escort_zero_cost": "Τον συνοδό τον πληρώνει ο ανάδοχος, αλλά το κόστος του μπήκε 0. Ελέγξτε το (§4.3.2.2).",
+    "loss_at_zero": "Ζημιά ακόμη και χωρίς έκπτωση.",
+}
+
+PACK = SectorPack(id="taxi_student_transport", resource_kinds=RESOURCE_KINDS, document_types=DOCUMENT_TYPES,
+                  labels=LABELS, gonogo=costs.gonogo)

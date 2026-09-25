@@ -16,6 +16,7 @@ One folder per tender (or ΔΣΑ). Each folder is a self-contained module. Addin
 | `tender.toml` | yes | Manifest read by `core/catalog` (schema below) |
 | `sop.md` | yes | Step-by-step workflow (Greek). Every step cites `§` of the source document |
 | `requirements.csv` | yes | One row per requirement/document, in the schema below |
+| `declarations/<requirement id>.txt` | no | Draft text of a declaration without sensitive parts, rendered into the client plan by `apps/documents` (variables in the folder's `CONTEXT.md`) |
 | `desk-research-<year>.md` | no | Market numbers for the tender (Greek): invitations, routes, outcomes, with sources |
 | `routes-<category>-<year>.csv` | no | Route tables extracted from invitations. Research data, not a data contract: code must not read it until a schema is defined here |
 | `awards-<category>-<years>.csv` | no | Per-route outcomes from published award decisions: reference price, winning discount or barren. Research data, not a data contract, same rule as above. Never names of natural persons |

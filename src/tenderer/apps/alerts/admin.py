@@ -12,6 +12,7 @@ from django.utils.safestring import SafeString
 
 from tenderer.apps.alerts import api
 from tenderer.apps.alerts.models import Deadline, Outbox, UpcomingDeadline
+from tenderer.apps.audit.admin import AuditedAdmin
 
 COLOURS = {api.Signal.RED: "#b00020", api.Signal.AMBER: "#8a5a00", api.Signal.GREEN: "#1b6e20"}
 FIELDS = ("engagement", "step", "due_on", "legal_latest", "ambiguous", "source_section", "acknowledged_at",
@@ -31,7 +32,7 @@ def close(modeladmin: admin.ModelAdmin, request: HttpRequest, queryset: QuerySet
 
 
 @admin.register(Deadline)
-class DeadlineAdmin(admin.ModelAdmin):
+class DeadlineAdmin(AuditedAdmin):
     list_display = ("due_on", "step", "engagement", "ambiguous", "acknowledged_at", "closed_at")
     list_select_related = ("engagement__client",)
     actions = [acknowledge, close]

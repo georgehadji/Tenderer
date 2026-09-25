@@ -151,3 +151,34 @@ def test_performance_guarantee_months_match_workbook(terms):
 
 def test_packs_registry_holds_taxi():
     assert "taxi_student_transport" in PACKS.sectors
+
+
+def _hook_inputs(rt):
+    route = {"reference": rt["F"], "days": f"{rt['days']}.0", "budget": rt["H"], "km_per_day": rt["J"],
+             "hours_per_day": rt["K"], "escort": rt["E"] == "ΝΑΙ", "escort_per_day": rt["L"]}
+    costs = {"fuel_l_per_100km": str(C["cons"]), "fuel_price_per_l": str(C["fuel"]), "wear_per_km": str(C["wear"]),
+             "opportunity_per_hour": str(C["opp"]), "extra_insurance_per_year": str(C["ins"]),
+             "bank_rate_per_year": str(C["rate"]), "bank_fee_per_guarantee": str(C["fee"]),
+             "paid_share": str(C["share"]), "fuel_increase": str(C["scn"])}
+    return route, costs, {"school_years": C["years"], "signed_on": C["sign"], "ends_on": C["end"]}
+
+
+def test_registry_hook_equals_the_oracle(tender):
+    hook = PACKS.sectors["taxi_student_transport"].gonogo
+    for rt in ROUTES:
+        result, warns = hook(*_hook_inputs(rt), tender.offer, PAYMENT_DEDUCTION_RATE)
+        assert result.net(0).quantize(D("0.0001")) == o_net(rt, 0).quantize(D("0.0001"))
+        assert result.break_even == o_breakeven(rt)
+        assert warns[:2] == ("fuel_no_adjustment", "cancellation_no_compensation")
+
+
+def test_registry_hook_reports_missing_and_refuses_floats(tender):
+    hook = PACKS.sectors["taxi_student_transport"].gonogo
+    route, costs, contract = _hook_inputs(ROUTES[0])  # escort route
+    result, warns = hook({**route, "escort_per_day": None, "km_per_day": ""}, costs, contract, tender.offer,
+                         PAYMENT_DEDUCTION_RATE)
+    assert (result, warns) == (Missing(("km_per_day", "escort_per_day")), ())
+    with pytest.raises(TypeError, match="floats"):
+        hook({**route, "reference": 51.18}, costs, contract, tender.offer, PAYMENT_DEDUCTION_RATE)
+    with pytest.raises(TypeError, match="date"):
+        hook(route, costs, {**contract, "signed_on": "2026-10-15"}, tender.offer, PAYMENT_DEDUCTION_RATE)

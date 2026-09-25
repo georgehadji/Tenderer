@@ -2,6 +2,7 @@
 retries, the heartbeat stops on a backlog, and every e-mail carries the never-ask line (X7). Synthetic data only."""
 
 import datetime as dt
+import threading
 import urllib.request
 from datetime import UTC
 from zoneinfo import ZoneInfo
@@ -11,7 +12,7 @@ from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.mail.backends import locmem
 from django.core.management import CommandError, call_command
-from django.db import IntegrityError
+from django.db import IntegrityError, connection, transaction
 from django.urls import reverse
 from django.utils import timezone
 
@@ -216,3 +217,29 @@ def test_admin_add_plans_the_outbox_and_the_dashboard_shows_red(engagement, admi
                       {"action": "acknowledge", "_selected_action": [soon.pk]}, secure=True)
     soon.refresh_from_db()
     assert soon.acknowledged_at is not None
+
+
+@pytest.mark.django_db(transaction=True)
+def test_two_senders_never_send_the_same_row(engagement, mailoutbox):
+    """A second sender skips a row another sender has locked (SKIP LOCKED), then sends it once it is free."""
+    d = add(engagement, dt.date(2026, 10, 12))
+    row = d.outbox.get(kind="calendar")
+    locked, release = threading.Event(), threading.Event()
+
+    def other_sender():
+        with transaction.atomic():
+            Outbox.objects.select_for_update().get(pk=row.pk)
+            locked.set()
+            release.wait(10)
+        connection.close()
+
+    thread = threading.Thread(target=other_sender)
+    thread.start()
+    assert locked.wait(10)
+    try:
+        assert api.send_due(NOW) == (0, 0)
+    finally:
+        release.set()
+        thread.join(10)
+    assert api.send_due(NOW) == (1, 0)
+    assert len(mailoutbox) == 1

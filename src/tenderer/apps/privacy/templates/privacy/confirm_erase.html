@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Erase {{ subjects|length }} client(s)?</h1>
+<p>Every record of these clients is deleted: resources, document metadata, engagements, bids, deadlines and queued e-mails. This cannot be undone. Backups keep the data until they rotate out.</p>
+<ul>{% for s in subjects %}<li>{{ s }}</li>{% endfor %}</ul>
+<form method="post">{% csrf_token %}
+{% for s in subjects %}<input type="hidden" name="_selected_action" value="{{ s.pk }}">{% endfor %}
+<input type="hidden" name="action" value="erase">
+<input type="hidden" name="confirm" value="yes">
+<input type="submit" value="Yes, erase">
+</form>
+{% endblock %}

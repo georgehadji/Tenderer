@@ -5,6 +5,7 @@ A route with a missing input returns `Missing`, which the caller shows as "λε�
 """
 
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
@@ -124,3 +125,43 @@ def warnings(route: RouteInputs, result: GoNoGo | Missing) -> tuple[str, ...]:
     if isinstance(result, GoNoGo) and result.break_even is None:
         out.append("loss_at_zero")
     return tuple(out)
+
+
+ROUTE_FIELDS = ("reference", "days", "budget", "km_per_day", "hours_per_day", "escort")
+COST_FIELDS = ("fuel_l_per_100km", "fuel_price_per_l", "wear_per_km", "opportunity_per_hour",
+               "extra_insurance_per_year", "bank_rate_per_year", "bank_fee_per_guarantee", "paid_share",
+               "fuel_increase")
+CONTRACT_FIELDS = ("school_years", "signed_on", "ends_on")
+
+
+def gonogo(route: Mapping[str, object], client: Mapping[str, object], contract: Mapping[str, object],
+           terms: OfferTerms, deduction_rate: Decimal) -> tuple[GoNoGo | Missing, tuple[str, ...]]:
+    """The registry hook (`SectorPack.gonogo`): plain values in, never floats; a missing value is `Missing`."""
+    values = {**route, **client, **contract}
+    missing = tuple(k for k in (*ROUTE_FIELDS, *COST_FIELDS, *CONTRACT_FIELDS) if values.get(k) in (None, ""))
+    if route.get("escort") and route.get("escort_per_day") in (None, ""):
+        missing += ("escort_per_day",)
+    if missing:
+        return Missing(missing), ()
+    d = {k: _decimal(values[k]) for k in (*COST_FIELDS, "km_per_day", "hours_per_day")}
+    inputs = RouteInputs(
+        reference=Money(_decimal(route["reference"])), days=int(_decimal(route["days"])),
+        budget=Money(_decimal(route["budget"])),
+        km_per_day=d["km_per_day"], hours_per_day=d["hours_per_day"], escort=bool(route["escort"]),
+        escort_per_day=_decimal(route["escort_per_day"]) if route.get("escort_per_day") not in (None, "") else None,
+    )
+    dates = Contract(int(_decimal(contract["school_years"])), _date(contract["signed_on"]), _date(contract["ends_on"]))
+    result = analyse(inputs, ClientCosts(**{k: d[k] for k in COST_FIELDS}), dates, terms, deduction_rate)
+    return result, warnings(inputs, result)
+
+
+def _date(value: object) -> date:
+    if not isinstance(value, date):
+        raise TypeError(f"expected a date, got {type(value).__name__}")
+    return value
+
+
+def _decimal(value: object) -> Decimal:
+    if isinstance(value, float):
+        raise TypeError("floats are refused: pass numbers as strings (docs/architecture.md §6.3)")
+    return Decimal(str(value))
