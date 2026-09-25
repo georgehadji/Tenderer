@@ -28,7 +28,7 @@ def open_engagement(client: Client, tender: Tender) -> Engagement:
     template = TEMPLATES[tender.lifecycle]
     return Engagement.objects.create(
         tenant_id=client.tenant_id, client=client, tender_id=tender.id, tender_version=tender.version,
-        lifecycle=template.id, state=template.engagement.initial,
+        tender_title=tender.title, lifecycle=template.id, state=template.engagement.initial,
     )
 
 

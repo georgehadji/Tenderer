@@ -49,4 +49,5 @@ jobs:
       - name: Django deploy check with production settings
         env:
           DJANGO_ALLOWED_HOSTS: tenderer.example
+          DJANGO_DEFAULT_FROM_EMAIL: alerts@tenderer.example
         run: DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')" uv run python manage.py check --deploy --fail-level WARNING

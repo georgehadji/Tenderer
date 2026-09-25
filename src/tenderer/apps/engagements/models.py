@@ -134,6 +134,7 @@ class Engagement(TenantModel):
     client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name="engagements")
     tender_id = models.CharField(max_length=100)
     tender_version = models.CharField(max_length=40)  # Tender.version at creation (S4)
+    tender_title = models.CharField(max_length=300, blank=True)  # shown to the client in reminders
     lifecycle = models.CharField(max_length=32, choices=[(t, t) for t in TEMPLATES])
     state = models.CharField(max_length=32, choices=[(s, s) for s in sorted(ENGAGEMENT_STATES)])
     admitted_on = models.DateField(null=True, blank=True)

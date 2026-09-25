@@ -182,6 +182,7 @@ def test_calendar_file_reviewed_and_mixed_years(tmp_path):
     ("R22", {"valid_until": date(2030, 1, 1)}, {}, "missing_date:contract_end"),
     ("R9", {}, AT_OFFER, "missing_date:issued_on"),
     ("R9", {"issued_on": date(2026, 8, 10)}, {Anchor.INVITATION_SENT: INVITATION}, "missing_date:submission"),
+    ("R9", {"issued_on": date(2026, 8, 10)}, {}, "missing_date:invitation_sent"),
     ("R2", {}, {}, "recorded"),
 ])
 def test_explicit_reasons(tender, rid, fact, key_dates, reason):

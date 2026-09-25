@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "tenderer.apps.engagements",
+    "tenderer.apps.alerts",
 ]
 
 TENDERER_PACKS = "tenderer.shell.packs.PACKS"  # apps reach packs only through this registry (§5.2 rule 7)
@@ -80,3 +81,17 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_AGE = 8 * 60 * 60
 X_FRAME_OPTIONS = "DENY"
+
+# E-mail (§6.5, §9): an EU transactional provider over SMTP with TLS. The sending domain publishes SPF, DKIM and
+# DMARC p=reject (DNS, outside this code).
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = True
+EMAIL_TIMEOUT = 30
+DEFAULT_FROM_EMAIL = os.environ["DJANGO_DEFAULT_FROM_EMAIL"]
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Dead man's switch (AD11): the external monitor's ping URL; `manage.py heartbeat` refuses to run without it.
+ALERTS_HEARTBEAT_URL = os.environ.get("ALERTS_HEARTBEAT_URL", "")

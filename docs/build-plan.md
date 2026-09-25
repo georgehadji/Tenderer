@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | In progress. M0–M4 built on 2026-09-24 (progress in §2.1); M5 onwards proposed. |
+| Status | In progress. M0–M4 built on 2026-09-24, M5 on 2026-09-25 (progress in §2.1); M6 onwards proposed. |
 | Date | 2026-09-24 |
 | Applies from | 2026-09-24: the owner started the build before the v1 gate of [`plan.md`](plan.md) §6 step 5 (3–5 real client cycles, time per cycle ≤ X). The gate still decides the v1 cut: milestones whose "Keep if" line depends on cycle evidence (M3 go/no-go, M6) wait for it. |
 | Owns | Build order, milestones, deliverables, acceptance criteria, what evidence keeps or cuts each milestone, effort guesses. |
@@ -96,7 +96,7 @@ Each milestone ends with green CI, updated `CONTEXT.md` files, and a short entry
 
 | | |
 |---|---|
-| Deliverables | Outbox table with idempotency keys; `plan_reminders`, `send_outbox`, `heartbeat` management commands run by cron; e-mail adapter (EU provider, SPF/DKIM/DMARC `p=reject`); `.ics` attachments; escalation ladder T-7/T-3/T-1; 14-day operator dashboard |
+| Deliverables | Outbox table with idempotency keys; `send_outbox` and `heartbeat` management commands run by cron (`plan_reminders` deferred, §2.1); e-mail adapter (EU provider, SPF/DKIM/DMARC `p=reject`); `.ics` attachments; escalation ladder T-7/T-3/T-1; 14-day operator dashboard |
 | Acceptance | Retrying a send never duplicates or skips (idempotency test); stopping the scheduler pages the operator within one period (alert drill, recorded); every e-mail carries the "we never ask for codes" line (snapshot test) |
 | Keep if | Always (H1) |
 
@@ -132,6 +132,7 @@ Each milestone ends with green CI, updated `CONTEXT.md` files, and a short entry
 | M0 | Built | `uv` lockfile; Django 5.2 LTS project in `shell/` (`check --deploy` passes with production settings); CI in `.github/workflows/ci.yml` with every gate listed above; a deliberate `core` → `django` import and a `core` → `shell` import each made `lint-imports` report `1 broken`; `scripts/check_context.py` fails on a folder without `CONTEXT.md` | Dev container: `compose.yaml` written, **not run** (Docker was not running). Secret scanning: GitHub's own scanning for public repositories, not a CI step (**UNVERIFIED** that it is on for this repository) |
 | M1 | Built | `tender.toml` (TOML, not YAML: standard library, no new dependency); `requirements.csv` schema v2 with `tenders/CONTEXT.md`; `load_tender()` refuses the tender with every problem named by line and column | ESPD criterion UUIDs empty until checked against ESPD-EDM (AD18). Lifecycle names registered by name only until M4 |
 | M2 | Built | 100% branch coverage of `core/rules`; H3 property test; the workbook's document boundaries (R1, R9, R12, R13, R18, R22); Easter vectors; draft calendars `reference/gr/holidays-2026…2029.csv` | Calendars say `reviewed=no`: until a person reviews them, every working-day deadline is `ambiguous` and reminders go by the earliest date |
+| M5 | Built | Deadline and outbox rows in one transaction; unique idempotency keys; `send_outbox` and `heartbeat` commands; a failed send retried on the next run and never sent twice (test with a failing mail backend); the heartbeat withheld while any notification waits more than 30 minutes; `.ics` attachment with alarms at T-3 and T-1; T-7/T-3/T-1 reminders; 14-day dashboard red when a send failed, the date passed, or there is no acknowledgement by T-3; snapshot test of the never-ask line (X7) | `plan_reminders` not built: rows are written with the deadline, so there is nothing to plan until deadlines arrive without a transaction (v2 ingestion) or document-expiry reminders are wanted. Deploy items **not done**: EU e-mail provider and SPF/DKIM/DMARC, the external monitor, the cron entry, and the recorded alert drill (all at M8). Two senders at once are kept apart by `SKIP LOCKED`, not tested |
 | M4 | Built | Templates `dps` and `open`; every legal transition tested and every other (state, event) pair refused; DRAFT → CHECKED refused without a clean offer check, a go/no-go and a clear offer-stage checklist, and a new offer check sends a CHECKED bid back to DRAFT; resource attributes validated against the pack schema on every save; database CHECKs on states and document dates; schema review test for prohibited data; ΑΦΜ, plate and phone validators | Audit events on transitions come with M7. No screens yet for invitations and route tables: records of offer checks, go/no-go and checklists are written through `api` |
 | M3 | Built | `Money` rejects floats; `discount_on_reference` price, validator (errors in the workbook's order), guarantees; taxi cost model equal to the Decimal oracle that checked the workbook, for 6 routes × 100 discounts, including the edge route whose break-even is exactly 20 | Mutation-score baseline (`architecture.md` §13) not yet recorded. `Percent` value object skipped: rates are plain `Decimal` until a second use needs more |
 

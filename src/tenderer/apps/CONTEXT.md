@@ -5,3 +5,4 @@ Django applications (`docs/architecture.md` §5.1). They import `core` and reach
 | Folder | Module |
 |---|---|
 | `engagements/` | Clients, resources, document metadata, engagements and bids; see its `CONTEXT.md` |
+| `alerts/` | Deadlines, the reminder outbox, the jobs that send it and the heartbeat, the 14-day dashboard; see its `CONTEXT.md` |

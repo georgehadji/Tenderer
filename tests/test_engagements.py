@@ -71,7 +71,8 @@ def test_document_dates_constraint_holds_in_the_database(client_):
 
 def test_engagement_moves_only_through_the_table(client_, tender):
     e = api.open_engagement(client_, tender)
-    assert (e.lifecycle, e.state, e.tender_version) == ("dps", "ONBOARDING", tender.version)
+    assert (e.lifecycle, e.state, e.tender_version, e.tender_title) == ("dps", "ONBOARDING", tender.version,
+                                                                        tender.title)
     with pytest.raises(api.TransitionRefused, match="illegal_event"):
         api.fire_engagement(e, "admitted")
     for event in ("registered", "applied", "admitted"):
@@ -122,8 +123,8 @@ PROHIBITED = ("criminal", "health", "medical", "password", "credential", "secret
 
 
 def test_schema_review_no_field_for_prohibited_data():
-    """AD5 and docs/architecture.md §8: no model and no resource schema has a place for prohibited data."""
-    for model in apps.get_app_config("engagements").get_models():
+    """AD5 and docs/architecture.md §8: no model of any app and no resource schema has a place for prohibited data."""
+    for model in (m for c in apps.get_app_configs() if c.name.startswith("tenderer.") for m in c.get_models()):
         for field in model._meta.get_fields():
             assert not isinstance(field, models.FileField), f"{model.__name__}.{field.name} stores a file"
             assert not any(word in field.name.lower() for word in PROHIBITED), f"{model.__name__}.{field.name}"

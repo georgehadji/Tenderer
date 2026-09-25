@@ -446,7 +446,7 @@ Untrusted files [14][15][16]:
 
 | | |
 |---|---|
-| Responsibility | Settings, wiring, operator UI (Django admin), management commands run by the scheduler: `plan_reminders`, `send_outbox`, `purge_expired`, `heartbeat`, and `poll_sources` (v2) |
+| Responsibility | Settings, wiring, operator UI (Django admin), management commands run by the scheduler: `send_outbox`, `heartbeat` (both in `apps/alerts`, M5), `purge_expired`, `plan_reminders` (only once deadlines arrive outside a transaction, v2) and `poll_sources` (v2) |
 | Paradigm | Framework-driven; kept thin |
 | Patterns | 12-factor configuration (environment variables); dependency injection by passing adapters as function arguments (no DI container) |
 | Security | Access in §10.2; `manage.py check --deploy` passes in CI [19] |
@@ -558,7 +558,8 @@ The CPV vocabulary in force is still the 2008 version: Regulation (EU) 2022/943 
 | engagement | client, tender_id, state, admitted_on | Personal | state from the allowed set; transitions only in code |
 | bid | engagement, invitation_ref, state, offer_check (validator result per line: route, discount, price, error), gonogo_snapshot, checklist_snapshot | Personal | state from the allowed set (CHECK); the recorded results feed the DRAFT → CHECKED guard |
 | acknowledgement | engagement, kind, acknowledged_at | Personal | no free text |
-| outbox (alerts) | idempotency_key, channel, recipient_ref, due_at, sent_at, attempts | Internal | `idempotency_key` unique |
+| deadline (alerts) | engagement, step, due_on (the conservative `remind_by`), legal_latest, ambiguous, source_section, acknowledged_at, closed_at | Personal | no personal data in `step`; a saved deadline is not edited (close it and add a new one) |
+| outbox (alerts) | idempotency_key, deadline, kind (calendar, T-7, T-3, T-1), due_at, sent_at, attempts, last_error (exception class only) | Internal | `idempotency_key` unique; the recipient is read from the client at send time, so a corrected address is used |
 | audit_event (audit) | at, actor, action, object_ref, details | Internal | INSERT-only grant + trigger |
 | opportunity, lot, item, award, contract, organisation, document_ref (opportunities, v2) | source, source_id, OCDS-aligned fields, CPV, NUTS, values, dates, sha256 of attachments | Public | (`source`, `source_id`) unique; no natural persons |
 | interest_profile (matching, v2) | client, CPV prefixes, NUTS, value range, pack filters | Personal (business profile) | one per client and sector |
@@ -667,7 +668,7 @@ A client portal (until v4), file uploads from clients, a document vault, SMS, an
 | H7 | Loss-making contract (X4) | Client underestimates cost or risk | Go/no-go required before `CHECKED`; fuel and cancellation warnings | State-machine guard test |
 | H8 | Personal-data breach (X6) | Attack; misconfiguration | §10 | ASVS L2 review; `check --deploy`; restore drill |
 | H9 | Client acts on phishing (X7) | Imitation of our e-mails | DMARC reject; no-credentials statement; minimum content | Periodic review of DMARC reports |
-| H10 | Reminders stop after a change | Regression | CI gates; smoke test of `plan_reminders` on synthetic data after every deploy | CI and deploy pipeline |
+| H10 | Reminders stop after a change | Regression | CI gates; smoke test of `send_outbox` and `heartbeat` on synthetic data after every deploy | CI and deploy pipeline |
 | H11 | Requirement or route missed by extraction (LLM) | Long-document recall failure; answer cut at `max_tokens`; a fallback model weaker than the primary | Recall-first model choice; dual extraction with the union shown to the reviewer; `length` or empty answer is a failed run; every chain model passes the recall gate (`llm-models.md` §3, §4.4, §7) | Gold-set evaluation: 100% recall in 3 of 3 runs per chain model |
 
 ---
